@@ -16,20 +16,20 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$jvmCoroutinesVersion")
-                implementation("com.epam.drill:drill-common:$drillCommonVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                implementation("com.epam.drill:drill-common:$version")
             }
         }
         named("jvmMain") {
             dependencies {
-                implementation("com.epam.drill:drill-common-jvm:$drillCommonVersion")
+                implementation("com.epam.drill:drill-common-jvm:$version")
             }
         }
         val nativeMain by creating {
             dependencies {
-                implementation("com.epam.drill:drill-jvmapi-native:$drillUtilsVersion")
-                implementation("com.epam.drill:drill-common-native:$drillCommonVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:1.2.0")
+                implementation("com.epam.drill:drill-jvmapi-native:$version")
+                implementation("com.epam.drill:drill-common-native:$version")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
         @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(nativeMain) }
