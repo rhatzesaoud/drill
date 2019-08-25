@@ -34,7 +34,7 @@ kotlin {
         }
         @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(nativeMain) }
         @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(nativeMain) }
-//        @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(natMain) }
+        @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(nativeMain) }
 
     }
 }
