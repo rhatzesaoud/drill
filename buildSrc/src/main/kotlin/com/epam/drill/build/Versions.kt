@@ -1,3 +1,3 @@
-val serializationRuntimeVersion = "0.11.0"
+val serializationRuntimeVersion = "0.12.0"
 
-val coroutinesVersion = "1.2.1"
+val coroutinesVersion = "1.3.0"

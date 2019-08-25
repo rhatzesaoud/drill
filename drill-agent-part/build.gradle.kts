@@ -15,7 +15,7 @@ kotlin {
         val commonMain by getting{
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 implementation("com.epam.drill:drill-common:$version")
             }
@@ -23,6 +23,7 @@ kotlin {
         named("jvmMain") {
             dependencies {
                 implementation("com.epam.drill:drill-common-jvm:$version")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
             }
         }
         val nativeMain by creating {
