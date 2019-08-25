@@ -1,2 +1,2 @@
-val serializationRuntimeVersion = "0.11.0"
+val serializationRuntimeVersion = "0.12.0"
 

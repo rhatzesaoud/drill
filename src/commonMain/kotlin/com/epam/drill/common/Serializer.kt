@@ -2,6 +2,7 @@ package com.epam.drill.common
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlin.native.concurrent.SharedImmutable
 
 @SharedImmutable
 val json = Json(JsonConfiguration.Stable)
