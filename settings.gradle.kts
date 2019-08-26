@@ -1,2 +1,2 @@
-rootProject.name = "drill-common"
+rootProject.name = "common"
 enableFeaturePreview("GRADLE_METADATA")

@@ -1,9 +1,9 @@
 plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
+    id("com.jfrog.bintray") version ("1.8.3")
 }
-apply(from = rootProject.file("gradle/publish.gradle"))
-
+apply(from = "https://gist.githubusercontent.com/IgorKey/1a3577ba3cdafe7dc2c52bcaebcfb00d/raw/a9f031cab335bd4ea3fbdb8110f85685c10f96cf/publish.gradle")
 repositories {
     mavenCentral()
     jcenter()
