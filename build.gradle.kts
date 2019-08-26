@@ -1,9 +1,12 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
+    id("com.jfrog.artifactory") version ("4.9.8")
     id("com.jfrog.bintray") version ("1.8.3")
 }
-apply(from = "https://gist.githubusercontent.com/IgorKey/1a3577ba3cdafe7dc2c52bcaebcfb00d/raw/a9f031cab335bd4ea3fbdb8110f85685c10f96cf/publish.gradle")
+apply(from = "https://gist.githubusercontent.com/IgorKey/1a3577ba3cdafe7dc2c52bcaebcfb00d/raw/fedf6b3200297f244703997bd24a733bd3e056a8/publish.gradle")
 repositories {
     mavenCentral()
     jcenter()
@@ -11,10 +14,15 @@ repositories {
 
 kotlin {
     targets {
-        mingwX64("windowsX64")
-        linuxX64("linuxX64")
-        macosX64("macosX64")
-        jvm()
+        if (!Os.isFamily(Os.FAMILY_MAC)) {
+            mingwX64("windowsX64")
+            linuxX64("linuxX64")
+            jvm()
+        } else {
+            macosX64("macosX64")
+            jvm()
+        }
+
     }
 
     sourceSets {
@@ -38,8 +46,11 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
             }
         }
-        @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(commonNativeSs) }
-        @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(commonNativeSs) }
-        @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
+        if (!Os.isFamily(Os.FAMILY_MAC)) {
+            @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(commonNativeSs) }
+            @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(commonNativeSs) }
+        } else {
+            @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
+        }
     }
 }
