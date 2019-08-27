@@ -4,7 +4,7 @@ plugins {
     id("com.jfrog.artifactory") version ("4.9.8")
     id("com.jfrog.bintray") version ("1.8.3")
 }
-apply(from = "https://gist.githubusercontent.com/IgorKey/1a3577ba3cdafe7dc2c52bcaebcfb00d/raw/fedf6b3200297f244703997bd24a733bd3e056a8/publish.gradle")
+apply(from = "https://gist.githubusercontent.com/IgorKey/e7a0e07428b6e56283d08dbc605bb942/raw/0af997f4044c4d1e1667e9ee67b2ebdf736fabde/publish.gradle")
 repositories {
     mavenCentral()
     jcenter()
