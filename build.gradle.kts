@@ -2,7 +2,10 @@ allprojects {
     repositories {
         mavenCentral()
         jcenter()
-        maven(url = "https://mymavenrepo.com/repo/BP3Ud0UqOuz2moFKE7Ry/")
+        if (version.toString().endsWith("-SNAPSHOT"))
+            maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
+        else
+            maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
         maven(url = "https://kotlin.bintray.com/kotlinx")
     }
 }
