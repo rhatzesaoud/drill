@@ -4,6 +4,7 @@ import com.epam.drill.build.serializationNativeVersion
 import com.epam.drill.build.serializationRuntimeVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import org.jetbrains.kotlin.konan.target.HostManager
 
@@ -15,12 +16,24 @@ plugins {
 }
 val gccIsNeeded = (project.property("gccIsNeeded") as String).toBoolean()
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-    maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
-    maven(url = "https://dl.bintray.com/kotlin/ktor/")
+allprojects {
+
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
+        maven(url = "https://dl.bintray.com/kotlin/ktor/")
+        if (version.toString().endsWith("-SNAPSHOT"))
+            maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
+        else
+            maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
+    }
+    tasks.withType<KotlinCompile> {
+        kotlinOptions.allWarningsAsErrors = true
+    }
+    tasks.withType<KotlinNativeCompile> {
+        kotlinOptions.allWarningsAsErrors = true
+    }
 }
 
 val libName = "drill-agent"
@@ -98,7 +111,7 @@ kotlin {
                 implementation("com.epam.drill:drill-agent-part-native:$version")
                 implementation("com.epam.drill:jvmapi-native:$version")
                 implementation("com.epam.drill:common-native:$version")
-                implementation(project(":drill-agent:util"))
+                implementation(project(":util"))
             }
         }
     }
@@ -113,21 +126,6 @@ tasks.withType<KotlinNativeCompile> {
 }
 
 tasks {
-    //TODO only for CI/CD compatibility. Will remove in next version
-    register("buildAgent") {
-        doLast {
-            val binary = (kotlin.targets["nativeAgent"] as KotlinNativeTarget)
-                .binaries
-                .findSharedLib(
-                    "libName",
-                    NativeBuildType.DEBUG
-                )?.outputFile
-            copy {
-                from(file("$binary"))
-                into(file("../distr"))
-            }
-        }
-    }
 
     named<Jar>("javaAgentJar") {
         archiveFileName.set("drillRuntime.jar")
@@ -143,9 +141,9 @@ tasks {
             group = LifecycleBasePlugin.BUILD_GROUP
             val linuxTarget = kotlin.targets["linuxX64"] as KotlinNativeTarget
             val linuxStaticLib = linuxTarget
-                .binaries
-                .findStaticLib(libName, NativeBuildType.DEBUG)!!
-                .outputFile.toPath()
+                    .binaries
+                    .findStaticLib(libName, NativeBuildType.DEBUG)!!
+                    .outputFile.toPath()
 
             val linuxBuildDir = linuxStaticLib.parent.parent
             val targetSo = linuxBuildDir.resolve("${libName}DebugShared").resolve("lib${libName.replace("-", "_")}.so")
@@ -154,29 +152,29 @@ tasks {
 
                 targetSo.parent.toFile().mkdirs()
                 commandLine = listOf(
-                    "docker-compose",
-                    "run",
-                    "--rm",
-                    "gcc",
-                    "-shared",
-                    "-o",
-                    "/home/project/${project.name}/${projectDir.toPath().relativize(targetSo)
-                        .toString()
-                        .replace(
-                            "\\",
-                            "/"
-                        )}",
-                    "-Wl,--whole-archive",
-                    "/home/project/${project.name}/${projectDir.toPath().relativize(linuxStaticLib)
-                        .toString()
-                        .replace(
-                            "\\",
-                            "/"
-                        )}",
-                    "-Wl,--no-whole-archive",
-                    "-static-libgcc",
-                    "-static-libstdc++",
-                    "-lstdc++"
+                        "docker-compose",
+                        "run",
+                        "--rm",
+                        "gcc",
+                        "-shared",
+                        "-o",
+                        "/home/project/${project.name}/${projectDir.toPath().relativize(targetSo)
+                                .toString()
+                                .replace(
+                                        "\\",
+                                        "/"
+                                )}",
+                        "-Wl,--whole-archive",
+                        "/home/project/${project.name}/${projectDir.toPath().relativize(linuxStaticLib)
+                                .toString()
+                                .replace(
+                                        "\\",
+                                        "/"
+                                )}",
+                        "-Wl,--no-whole-archive",
+                        "-static-libgcc",
+                        "-static-libstdc++",
+                        "-lstdc++"
                 )
 
             }
@@ -201,24 +199,24 @@ afterEvaluate {
             }
         }
     }
-    if (!isDevMode)
+//    if (!isDevMode)
         publishing {
             repositories {
                 maven {
 
                     url =
-                        if (version.toString().endsWith("-SNAPSHOT"))
-                            uri("http://oss.jfrog.org/oss-snapshot-local")
-                        else uri("http://oss.jfrog.org/oss-release-local")
+                            if (version.toString().endsWith("-SNAPSHOT"))
+                                uri("http://oss.jfrog.org/oss-snapshot-local")
+                            else uri("http://oss.jfrog.org/oss-release-local")
                     credentials {
                         username =
-                            if (project.hasProperty("bintrayUser"))
-                                project.property("bintrayUser").toString()
-                            else System.getenv("BINTRAY_USER")
+                                if (project.hasProperty("bintrayUser"))
+                                    project.property("bintrayUser").toString()
+                                else System.getenv("BINTRAY_USER")
                         password =
-                            if (project.hasProperty("bintrayApiKey"))
-                                project.property("bintrayApiKey").toString()
-                            else System.getenv("BINTRAY_API_KEY")
+                                if (project.hasProperty("bintrayApiKey"))
+                                    project.property("bintrayApiKey").toString()
+                                else System.getenv("BINTRAY_API_KEY")
                     }
                 }
             }
@@ -227,7 +225,7 @@ afterEvaluate {
                 availableTarget.forEach {
                     create<MavenPublication>("${it.name}Zip") {
                         artifactId = "$libName-${it.name}"
-                        val artifact = artifact(tasks["${it.name}DistZip"])
+                        artifact(tasks["${it.name}DistZip"])
                     }
                 }
             }
