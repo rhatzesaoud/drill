@@ -1,6 +1,8 @@
 import com.epam.drill.build.ktorVersion
 import com.epam.drill.build.serializationRuntimeVersion
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.palantir.gradle.gitversion.VersionDetails
+import groovy.json.JsonOutput
+import groovy.lang.Closure
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -10,6 +12,7 @@ plugins {
     application
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("com.palantir.git-version") version "0.12.0-rc2"
 }
 
 repositories {
@@ -114,8 +117,27 @@ tasks {
     named("run") {
         dependsOn(downloadPlugins)
     }
-    named("shadowJar", ShadowJar::class) {
+    val createVersion by registering {
+        doLast {
+            @Suppress("UNCHECKED_CAST") val details =
+                (project.extensions.extraProperties.get("versionDetails") as Closure<VersionDetails>).invoke()
+            val versionFile = JsonOutput.toJson(
+                mapOf(
+                    "version" to project.version,
+                    "lastTag" to details.lastTag,
+                    "commitDistance" to details.commitDistance,
+                    "gitHash" to details.gitHashFull,
+                    "branchName" to details.branchName
+                )
+            )
 
+            project.sourceSets["main"].output.resourcesDir?.let {
+                file(it).resolve("version.json").writeText(versionFile)
+            }
+        }
+    }
+    classes {
+        dependsOn(createVersion)
     }
 
 }
