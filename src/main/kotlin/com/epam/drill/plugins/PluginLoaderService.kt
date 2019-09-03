@@ -21,7 +21,7 @@ class PluginLoaderService(override val kodein: Kodein) : KodeinAware {
     private val plugins: Plugins by kodein.instance()
     private val pluginPaths: List<File> =
         listOf(
-            File("..", "distr").resolve("adminStorage"),
+            File("distr").resolve("adminStorage"),
             drillHomeDir.resolve("adminStorage")
         ).map { it.canonicalFile }
 

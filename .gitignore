@@ -1,1 +1,7 @@
 /work
+/.idea/
+/.gradle/
+/*/.gradle/
+/build/
+/*/build/
+/distr/
