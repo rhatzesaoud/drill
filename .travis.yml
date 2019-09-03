@@ -1,7 +1,7 @@
 stages:
   - test_and_upload
   - name: publish
-    if: branch = develop
+    if: branch = master
 jobs:
   include:
     - os: windows

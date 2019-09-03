@@ -1,7 +1,4 @@
-import com.epam.drill.build.currentTarget
-import com.epam.drill.build.jvmCoroutinesVersion
-import com.epam.drill.build.serializationNativeVersion
-import com.epam.drill.build.serializationRuntimeVersion
+import com.epam.drill.build.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -106,8 +103,8 @@ kotlin {
         named("nativeAgentMain") {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationNativeVersion")
-                implementation("io.ktor:ktor-utils-native:1.2.3-1.3.50-eap-5")
-                implementation("org.jetbrains.kotlinx:kotlinx-io-native:0.1.13-1.3.50-eap-5")
+                implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-native:$kotlinxIoVersion")
                 implementation("com.epam.drill:drill-agent-part-native:$version")
                 implementation("com.epam.drill:jvmapi-native:$version")
                 implementation("com.epam.drill:common-native:$version")
