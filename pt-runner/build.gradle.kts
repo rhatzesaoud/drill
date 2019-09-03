@@ -1,8 +1,15 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     java
     application
+}
+val isDevMode = System.getProperty("idea.active") == "true"
+val target = when {
+    HostManager.hostIsMingw -> "mingwX64"
+    HostManager.hostIsLinux -> "linuxX64"
+    else -> "macosX64"
 }
 application {
     mainClassName = "org.springframework.boot.loader.JarLauncher"
@@ -11,7 +18,8 @@ application {
         Os.isFamily(Os.FAMILY_UNIX) -> Pair("lib", "so")
         else -> Pair("", "dll")
     }
-    val drillDistrDir = rootProject.buildDir.resolve("install").resolve("nativeAgent").absolutePath
+    val drillDistrDir =
+        rootProject.buildDir.resolve("install").resolve(if (isDevMode) "nativeAgent" else target).absolutePath
     val agentPath = "${file("$drillDistrDir/${pref}drill_agent.$ex")}"
     applicationDefaultJvmArgs = listOf(
         "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007",
@@ -31,6 +39,9 @@ dependencies {
 }
 tasks {
     named("run") {
-        dependsOn(rootProject.tasks.getByPath("installNativeAgentDist"))
+        if (isDevMode)
+            dependsOn(rootProject.tasks.getByPath("installNativeAgentDist"))
+        else
+            dependsOn(rootProject.tasks.getByPath("install${target.capitalize()}Dist"))
     }
 }
