@@ -6,6 +6,7 @@ import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.agent.*
 import com.epam.drill.endpoints.openapi.*
 import com.epam.drill.endpoints.plugin.*
+import com.epam.drill.endpoints.system.InfoController
 import com.epam.drill.jwt.config.*
 import com.epam.drill.jwt.user.source.*
 import com.epam.drill.plugin.api.end.*
@@ -56,6 +57,7 @@ val userSource: UserSource = UserSourceImpl()
 val handlers = Kodein.Module(name = "handlers") {
     bind<DrillAdminEndpoints>() with eagerSingleton { DrillAdminEndpoints(kodein) }
     bind<PluginDispatcher>() with eagerSingleton { PluginDispatcher(kodein) }
+    bind<InfoController>() with eagerSingleton { InfoController(kodein) }
 }
 
 
