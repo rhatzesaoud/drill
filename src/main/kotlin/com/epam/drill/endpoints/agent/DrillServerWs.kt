@@ -4,10 +4,12 @@ package com.epam.drill.endpoints.agent
 
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
+import com.epam.drill.jwt.config.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
 import org.kodein.di.*
@@ -23,6 +25,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
 
         app.routing {
             webSocket("/ws/drill-admin-socket") {
+                sessionVerifier()
                 val rawWsSession = this
                 try {
                     incoming.consumeEach { frame ->
@@ -51,6 +54,26 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
                     sessionStorage.remove(rawWsSession)
                 }
 
+            }
+        }
+    }
+
+    private suspend fun DefaultWebSocketServerSession.sessionVerifier() {
+        val token = call.parameters["token"]!!
+        try {
+            JwtConfig.verifier.verify(token)
+        } catch (ex: Exception) {
+            send(Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout")))
+        }
+
+        launch {
+            while (true) {
+                delay(10000)
+                try {
+                    JwtConfig.verifier.verify(token)
+                } catch (ex: Exception) {
+                    send(Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout")))
+                }
             }
         }
     }

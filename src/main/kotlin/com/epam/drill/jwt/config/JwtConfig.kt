@@ -1,14 +1,15 @@
 package com.epam.drill.jwt.config
 
-import com.auth0.jwt.*
-import com.auth0.jwt.algorithms.*
-import com.epam.drill.jwt.user.*
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.epam.drill.jwt.user.User
 import java.util.*
 
 object JwtConfig {
     private const val secret = "HDZZh35d82zdzHJFF86tt"
     private const val issuser = "http://drill-4-j/"
-    private const val validityInMs = 36_000_00 * 10 // TODO change expire timeout. Now it's 10 hrs
+    private const val validityInMs = (36_000_00 / 60) * 5
     private val algorithm = Algorithm.HMAC512(secret)
 
     val verifier: JWTVerifier = JWT
