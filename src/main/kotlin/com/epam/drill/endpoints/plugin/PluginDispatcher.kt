@@ -91,8 +91,8 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                                 agentManager.agentSession(agentId)?.apply {
                                     val agentAction = PluginAction(pluginId, agentPartMsg)
                                     val agentPluginMsg = PluginAction.serializer() stringify agentAction
-                                    val agentMsg = Message(MessageType.MESSAGE, "/plugins/action", agentPluginMsg)
-                                    val agentFrame = Frame.Text(Message.serializer() stringify agentMsg)
+                                    val agentMsg = WsMessage(WsMessageType.MESSAGE, "/plugins/action", agentPluginMsg)
+                                    val agentFrame = Frame.Text(WsMessage.serializer() stringify agentMsg)
                                     send(agentFrame)
                                 }
                             }
@@ -147,9 +147,9 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                         else -> {
                             session.send(
                                 Frame.Text(
-                                    Message.serializer() stringify
-                                            Message(
-                                                MessageType.MESSAGE,
+                                    WsMessage.serializer() stringify
+                                            WsMessage(
+                                                WsMessageType.MESSAGE,
                                                 "/plugins/togglePlugin", pluginId
                                             )
                                 )

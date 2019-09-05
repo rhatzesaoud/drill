@@ -27,8 +27,8 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 val destination = app.toLocation(WsRoutes.GetAllAgents())
                 sessionStorage.sendTo(
 
-                    Message(
-                        MessageType.MESSAGE, destination,
+                    WsMessage(
+                        WsMessageType.MESSAGE, destination,
                         AgentInfoWebSocket.serializer().list stringify storage.values.map { it.agent }.sortedWith(
                             compareBy(AgentInfo::id)
                         ).toMutableSet().toAgentInfosWebSocket()
@@ -42,8 +42,8 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 val destination = app.toLocation(WsRoutes.GetAgent(k))
                 if (sessionStorage.exists(destination)) {
                     sessionStorage.sendTo(
-                        Message(
-                            MessageType.MESSAGE,
+                        WsMessage(
+                            WsMessageType.MESSAGE,
                             destination,
                             AgentInfoWebSocketSingle.serializer() stringify v.agent.toAgentInfoWebSocket()
                         )
@@ -54,7 +54,7 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
             agentManager.agentStorage.onRemove += remove(mutableSetOf()) { k ->
                 val destination = app.toLocation(WsRoutes.GetAgent(k))
                 if (sessionStorage.exists(destination))
-                    sessionStorage.sendTo(Message(MessageType.DELETE, destination, ""))
+                    sessionStorage.sendTo(WsMessage(WsMessageType.DELETE, destination, ""))
             }
 
             wsTopic {

@@ -5,11 +5,12 @@ import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.agent.*
+import com.epam.drill.jwt.config.*
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.locations.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import org.junit.*
@@ -18,13 +19,8 @@ import org.kodein.di.*
 import org.kodein.di.generic.*
 import kotlin.test.*
 
-@ExperimentalCoroutinesApi
-@KtorExperimentalLocationsAPI
 internal class DrillServerWsTest {
 
-    @ExperimentalCoroutinesApi
-    @KtorExperimentalLocationsAPI
-    @KtorExperimentalAPI
     companion object {
         val engine = TestApplicationEngine(createTestEnvironment())
         val pluginStorage = HashSet<DrillWsSession>()
@@ -54,19 +50,30 @@ internal class DrillServerWsTest {
         }
     }
 
+    private lateinit var token: String
+
+    @BeforeTest
+    fun tokenGen() {
+        val username = "guest"
+        val password = ""
+        val credentials = UserPasswordCredential(username, password)
+        val user = userSource.findUserByCredentials(credentials)
+        token = JwtConfig.makeToken(user)
+    }
+
     @Test
     fun testConversation() {
         with(engine) {
             pluginStorage.clear()
-            handleWebSocketConversation("/ws/drill-admin-socket") { incoming, outgoing ->
-                outgoing.send(message(MessageType.SUBSCRIBE, "/mytopic", ""))
+            handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { incoming, outgoing ->
+                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic", ""))
                 assertNotNull(incoming.receive())
                 assertEquals(1, pluginStorage.size)
-                outgoing.send(message(MessageType.UNSUBSCRIBE, "/mytopic", ""))
-                outgoing.send(message(MessageType.SUBSCRIBE, "/mytopic", ""))
+                outgoing.send(message(WsMessageType.UNSUBSCRIBE, "/mytopic", ""))
+                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic", ""))
                 assertNotNull(incoming.receive())
                 assertEquals(1, pluginStorage.size)
-                outgoing.send(message(MessageType.SUBSCRIBE, "/mytopic2", ""))
+                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic2", ""))
                 assertNotNull(incoming.receive())
                 assertEquals(2, pluginStorage.size)
                 assertEquals(2, pluginStorage.map { it.url }.toSet().size)
@@ -82,7 +89,7 @@ internal class DrillServerWsTest {
         val string = "someText: \"asdf\""
         val serializedString = serialize(string)
         assertEquals(string, serializedString)
-        val complexStructure1 = mapOf("key" to Message(MessageType.SUBSCRIBE, "asd", "vbn"))
+        val complexStructure1 = mapOf("key" to WsMessage(WsMessageType.SUBSCRIBE, "asd", "vbn"))
         val serializedStructure1 = serialize(complexStructure1)
         val result1 = "{\"key\":{\"type\":\"SUBSCRIBE\",\"destination\":\"asd\",\"message\":\"vbn\"}}"
         assertEquals(result1, serializedStructure1)
@@ -96,21 +103,34 @@ internal class DrillServerWsTest {
     fun `topic resolvation goes correctly`() {
 
         with(engine) {
-            handleWebSocketConversation("/ws/drill-admin-socket") { incoming, outgoing ->
-                outgoing.send(message(MessageType.SUBSCRIBE, "/blabla/pathOfPain", ""))
+            handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { incoming, outgoing ->
+                outgoing.send(message(WsMessageType.SUBSCRIBE, "/blabla/pathOfPain", ""))
                 val tmp = incoming.receive()
                 assertNotNull(tmp)
-                val response = Message.serializer() parse (tmp as Frame.Text).readText()
+                val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
                 val parsed = AgentBuildVersionJson.serializer() parse response.message
                 assertEquals("testId", parsed.id)
                 assertEquals("blabla", parsed.name)
             }
         }
     }
+
+    @Test
+    fun `get UNAUTHORIZED event if token is invalid`() {
+        with(engine) {
+            handleWebSocketConversation("/ws/drill-admin-socket?token=notvalid") { incoming, _ ->
+                val tmp = incoming.receive()
+                assertTrue { tmp is Frame.Text }
+                val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
+                assertEquals(WsMessageType.UNAUTHORIZED, response.type)
+            }
+        }
+    }
+
 }
 
-fun message(type: MessageType, destination: String, message: String) =
-    (Message.serializer() stringify Message(type, destination, message)).textFrame()
+fun message(type: WsMessageType, destination: String, message: String) =
+    (WsMessage.serializer() stringify WsMessage(type, destination, message)).textFrame()
 
 
 class ServerStubTopics(override val kodein: Kodein) : KodeinAware {

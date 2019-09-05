@@ -75,7 +75,7 @@ class DrillPluginWsTest {
     fun `should retrun CloseFrame if we subscribe without SubscribeInfo`() {
         with(engine) {
             this?.handleWebSocketConversation("/ws/drill-plugin-socket") { incoming, outgoing ->
-                outgoing.send(message(MessageType.SUBSCRIBE, "/pluginTopic1", ""))
+                outgoing.send(message(WsMessageType.SUBSCRIBE, "/pluginTopic1", ""))
                 val receive = incoming.receive()
                 assertTrue(receive is Frame.Close)
                 assertEquals(CloseReason.Codes.UNEXPECTED_CONDITION.code, receive.readReason()?.code)
@@ -91,16 +91,16 @@ class DrillPluginWsTest {
                 val destination = "/pluginTopic2"
                 outgoing.send(
                     message(
-                        MessageType.SUBSCRIBE,
+                        WsMessageType.SUBSCRIBE,
                         destination,
                         SubscribeInfo.serializer() stringify SubscribeInfo(agentId, buildVersion)
                     )
                 )
                 val receive = incoming.receive() as? Frame.Text ?: fail()
                 val readText = receive.readText()
-                val fromJson = Message.serializer() parse readText
+                val fromJson = WsMessage.serializer() parse readText
                 assertEquals(destination, fromJson.destination)
-                assertEquals(MessageType.MESSAGE, fromJson.type)
+                assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertTrue { fromJson.message.isEmpty() }
             }
         }
@@ -115,7 +115,7 @@ class DrillPluginWsTest {
                 wsPluginService?.send(agentInfo, destination, messageForTest)
                 outgoing.send(
                     message(
-                        MessageType.SUBSCRIBE,
+                        WsMessageType.SUBSCRIBE,
                         destination,
                         SubscribeInfo.serializer() stringify SubscribeInfo(agentId, buildVersion)
                     )
@@ -123,12 +123,12 @@ class DrillPluginWsTest {
 
                 val receive = incoming.receive() as? Frame.Text ?: fail()
                 val readText = receive.readText()
-                val fromJson = Message.serializer() parse readText
+                val fromJson = WsMessage.serializer() parse readText
                 assertEquals(destination, fromJson.destination)
-                assertEquals(MessageType.MESSAGE, fromJson.type)
+                assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertEquals(messageForTest, fromJson.message)
 
-                outgoing.send(message(MessageType.SUBSCRIBE, destination, ""))
+                outgoing.send(message(WsMessageType.SUBSCRIBE, destination, ""))
             }
         }
     }
@@ -148,7 +148,7 @@ class DrillPluginWsTest {
                 wsPluginService?.send(agentInfo, destination, messageForTest)
                 outgoing.send(
                     message(
-                        MessageType.SUBSCRIBE,
+                        WsMessageType.SUBSCRIBE,
                         destination,
                         SubscribeInfo.serializer() stringify SubscribeInfo(agentId, null)
                     )
@@ -156,12 +156,12 @@ class DrillPluginWsTest {
 
                 val receive = incoming.receive() as? Frame.Text ?: fail()
                 val readText = receive.readText()
-                val fromJson = Message.serializer() parse readText
+                val fromJson = WsMessage.serializer() parse readText
                 assertEquals(destination, fromJson.destination)
-                assertEquals(MessageType.MESSAGE, fromJson.type)
+                assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertEquals(messageForTest, fromJson.message)
 
-                outgoing.send(message(MessageType.SUBSCRIBE, destination, ""))
+                outgoing.send(message(WsMessageType.SUBSCRIBE, destination, ""))
             }
         }
     }

@@ -2,6 +2,7 @@
 
 package com.epam.drill.endpoints.agent
 
+import com.auth0.jwt.exceptions.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.jwt.config.*
@@ -31,16 +32,16 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
                     incoming.consumeEach { frame ->
 
                         val json = (frame as Frame.Text).readText()
-                        val event = Message.serializer() parse json
+                        val event = WsMessage.serializer() parse json
                         when (event.type) {
-                            MessageType.SUBSCRIBE -> {
+                            WsMessageType.SUBSCRIBE -> {
                                 val wsSession = DrillWsSession(event.destination, rawWsSession)
                                 subscribe(wsSession, event)
                             }
-                            MessageType.MESSAGE -> {
+                            WsMessageType.MESSAGE -> {
                                 TODO("NOT IMPLEMENTED YET")
                             }
-                            MessageType.UNSUBSCRIBE -> {
+                            WsMessageType.UNSUBSCRIBE -> {
                                 sessionStorage.removeTopic(event.destination)
                             }
 
@@ -59,28 +60,33 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     }
 
     private suspend fun DefaultWebSocketServerSession.sessionVerifier() {
-        val token = call.parameters["token"]!!
-        try {
-            JwtConfig.verifier.verify(token)
-        } catch (ex: Exception) {
-            send(Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout")))
+        val token = call.parameters["token"]
+        if (token == null) {
+            close()
+            return
         }
+        verifyToken(token)
 
         launch {
             while (true) {
-                delay(10000)
-                try {
-                    JwtConfig.verifier.verify(token)
-                } catch (ex: Exception) {
-                    send(Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout")))
-                }
+                delay(10_000)
+                verifyToken(token)
             }
+        }
+    }
+
+    private suspend fun DefaultWebSocketServerSession.verifyToken(token: String) {
+        try {
+            JwtConfig.verifier.verify(token)
+        } catch (ex: JWTVerificationException) {
+            send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
+            close()
         }
     }
 
     private suspend fun subscribe(
         wsSession: DrillWsSession,
-        event: Message
+        event: WsMessage
     ) {
         sessionStorage += (wsSession)
         println("${event.destination} is subscribed")
@@ -93,8 +99,8 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
             wsTopic {
                 val message = resolve(destination, sessionStorage)
                 sessionStorage.sendTo(
-                    Message(
-                        MessageType.MESSAGE,
+                    WsMessage(
+                        WsMessageType.MESSAGE,
                         destination,
                         message
                     )

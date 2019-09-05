@@ -10,13 +10,13 @@ fun Application.toLocation(rout: Any): String {
     return this.locations.href(rout)
 }
 
-suspend fun MutableSet<DrillWsSession>.sendTo(message: Message) {
+suspend fun MutableSet<DrillWsSession>.sendTo(message: WsMessage) {
     val iter = this.iterator()
     while (iter.hasNext()) {
         try {
             val it = iter.next()
             if (it.url == message.destination) {
-                it.send(Frame.Text(Message.serializer() stringify message))
+                it.send(Frame.Text(WsMessage.serializer() stringify message))
             }
         } catch (ex: Exception) {
             iter.remove()

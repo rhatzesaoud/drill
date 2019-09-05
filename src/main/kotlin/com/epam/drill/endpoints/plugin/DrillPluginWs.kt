@@ -34,7 +34,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
         if (message.isEmpty()) {
             eventStorage.remove(id)
         } else {
-            val messageForSend = Message.serializer() stringify Message(MessageType.MESSAGE, destination, message)
+            val messageForSend = WsMessage.serializer() stringify WsMessage(WsMessageType.MESSAGE, destination, message)
             logger.debug { "send data to $id destination" }
             eventStorage[id] = messageForSend
 
@@ -57,9 +57,9 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
                 incoming.consumeEach { frame ->
                     when (frame) {
                         is Frame.Text -> {
-                            val event = Message.serializer() parse frame.readText()
+                            val event = WsMessage.serializer() parse frame.readText()
                             when (event.type) {
-                                MessageType.SUBSCRIBE -> {
+                                WsMessageType.SUBSCRIBE -> {
                                     val subscribeInfo = SubscribeInfo.serializer() parse event.message
 
                                     saveSession(event, subscribeInfo)
@@ -76,9 +76,9 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
 
                                     if (message.isNullOrEmpty()) {
                                         this.send(
-                                            (Message.serializer() stringify
-                                                    Message(
-                                                        MessageType.MESSAGE,
+                                            (WsMessage.serializer() stringify
+                                                    WsMessage(
+                                                        WsMessageType.MESSAGE,
                                                         event.destination,
                                                         ""
                                                     )).textFrame()
@@ -86,7 +86,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
                                     } else this.send(Frame.Text(message))
 
                                 }
-                                MessageType.UNSUBSCRIBE -> {
+                                WsMessageType.UNSUBSCRIBE -> {
                                     sessionStorage[event.destination]?.let {
                                         it.removeIf { data -> data.session == this }
                                     }
@@ -103,7 +103,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
         }
     }
 
-    private fun DefaultWebSocketServerSession.saveSession(event: Message, subscribeInfo: SubscribeInfo) {
+    private fun DefaultWebSocketServerSession.saveSession(event: WsMessage, subscribeInfo: SubscribeInfo) {
         val sessionSet = sessionStorage.getOrPut(event.destination) {
             Collections.newSetFromMap(ConcurrentHashMap())
         }
