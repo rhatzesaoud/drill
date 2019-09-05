@@ -62,6 +62,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     private suspend fun DefaultWebSocketServerSession.sessionVerifier() {
         val token = call.parameters["token"]
         if (token == null) {
+            send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
             close()
             return
         }
