@@ -1,5 +1,4 @@
-import com.epam.drill.build.ktorVersion
-import com.epam.drill.build.serializationRuntimeVersion
+import com.epam.drill.build.*
 import com.palantir.gradle.gitversion.VersionDetails
 import groovy.json.JsonOutput
 import groovy.lang.Closure
@@ -20,10 +19,10 @@ repositories {
     jcenter()
     maven(url = "https://dl.bintray.com/kodein-framework/Kodein-DI/")
     mavenLocal()
-    if (version.toString().endsWith("-SNAPSHOT"))
+    if (version.toString().endsWith("-SNAPSHOT")) {
         maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
-    else
-        maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
+    }
+    maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
 }
 
 val appMainClassName by extra("io.ktor.server.netty.EngineMain")
@@ -49,7 +48,7 @@ val remotePlugins: Configuration by configurations.creating {}
 dependencies {
     remotePlugins("com.epam.drill:coverage-plugin:$version")
 
-    implementation("com.epam.drill:common-jvm:$version")
+    implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
     implementation("com.epam.drill:drill-admin-part-jvm:$version")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
