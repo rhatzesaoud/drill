@@ -13,8 +13,6 @@ plugins {
 }
 
 val gccIsNeeded = (project.property("gccIsNeeded") as String).toBoolean()
-val drillCommonLibVersion = project.property("drillCommonLibVersion") as String
-val drillJvmApiLibVersion = project.property("drillJvmApiLibVersion") as String
 
 allprojects {
 
