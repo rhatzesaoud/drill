@@ -2,15 +2,12 @@
 
 package com.epam.drill.endpoints.agent
 
-import com.auth0.jwt.exceptions.*
 import com.epam.drill.common.*
+import com.epam.drill.core.*
 import com.epam.drill.endpoints.*
-import com.epam.drill.jwt.config.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
 import org.kodein.di.*
@@ -25,8 +22,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     init {
 
         app.routing {
-            webSocket("/ws/drill-admin-socket") {
-                sessionVerifier()
+            authWebSocket("/ws/drill-admin-socket") {
                 val rawWsSession = this
                 try {
                     incoming.consumeEach { frame ->
@@ -54,34 +50,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
                     println("Session was removed")
                     sessionStorage.remove(rawWsSession)
                 }
-
             }
-        }
-    }
-
-    private suspend fun DefaultWebSocketServerSession.sessionVerifier() {
-        val token = call.parameters["token"]
-        if (token == null) {
-            send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
-            close()
-            return
-        }
-        verifyToken(token)
-
-        launch {
-            while (true) {
-                delay(10_000)
-                verifyToken(token)
-            }
-        }
-    }
-
-    private suspend fun DefaultWebSocketServerSession.verifyToken(token: String) {
-        try {
-            JwtConfig.verifier.verify(token)
-        } catch (ex: JWTVerificationException) {
-            send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
-            close()
         }
     }
 

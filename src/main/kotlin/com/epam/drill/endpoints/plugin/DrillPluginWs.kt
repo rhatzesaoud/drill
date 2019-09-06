@@ -5,6 +5,7 @@ package com.epam.drill.endpoints.plugin
 import com.epam.drill.cache.*
 import com.epam.drill.cache.type.*
 import com.epam.drill.common.*
+import com.epam.drill.core.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.plugin.api.end.*
 import io.ktor.application.*
@@ -53,7 +54,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
 
     init {
         app.routing {
-            webSocket("/ws/drill-plugin-socket") {
+            authWebSocket("/ws/drill-plugin-socket") {
                 incoming.consumeEach { frame ->
                     when (frame) {
                         is Frame.Text -> {

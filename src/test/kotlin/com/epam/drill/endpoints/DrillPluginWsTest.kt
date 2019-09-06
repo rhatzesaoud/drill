@@ -7,8 +7,10 @@ import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.plugin.*
+import com.epam.drill.jwt.config.*
 import com.epam.drill.storage.*
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.locations.*
 import io.ktor.server.testing.*
@@ -71,10 +73,21 @@ class DrillPluginWsTest {
         }
     }
 
+    lateinit var token: String
+
+    @BeforeTest
+    fun tokenGen() {
+        val username = "guest"
+        val password = ""
+        val credentials = UserPasswordCredential(username, password)
+        val user = userSource.findUserByCredentials(credentials)
+        token = JwtConfig.makeToken(user)
+    }
+
     @Test
-    fun `should retrun CloseFrame if we subscribe without SubscribeInfo`() {
+    fun `should return CloseFrame if we subscribe without SubscribeInfo`() {
         with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket") { incoming, outgoing ->
+            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 outgoing.send(message(WsMessageType.SUBSCRIBE, "/pluginTopic1", ""))
                 val receive = incoming.receive()
                 assertTrue(receive is Frame.Close)
@@ -87,7 +100,7 @@ class DrillPluginWsTest {
     @Test
     fun `should communicate with pluginWs and return the empty MESSAGE`() {
         with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket") { incoming, outgoing ->
+            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 val destination = "/pluginTopic2"
                 outgoing.send(
                     message(
@@ -109,7 +122,7 @@ class DrillPluginWsTest {
     @Test
     fun `should return data from storage which was sent before via send()`() {
         with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket") { incoming, outgoing ->
+            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 val destination = "/pluginTopic1"
                 val messageForTest = "testMessage"
                 wsPluginService?.send(agentInfo, destination, messageForTest)
@@ -136,7 +149,7 @@ class DrillPluginWsTest {
     @Test
     fun `should return data from storage for current buildVersion if BV is null`() {
         with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket") { incoming, outgoing ->
+            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 val destination = "/pluginTopic1"
                 val messageForTest = "testMessage"
                 agentStorage.put(
