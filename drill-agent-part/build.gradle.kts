@@ -20,18 +20,18 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("com.epam.drill:common:$$drillCommonLibVersion")
+                implementation("com.epam.drill:common:$drillCommonLibVersion")
             }
         }
         named("jvmMain") {
             dependencies {
-                implementation("com.epam.drill:common-jvm:$$drillCommonLibVersion")
+                implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
             }
         }
         val nativeMain by creating {
             dependencies {
-                implementation("com.epam.drill:common-native:$$drillCommonLibVersion")
+                implementation("com.epam.drill:common-native:$drillCommonLibVersion")
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
