@@ -11,7 +11,10 @@ plugins {
     distribution
     `maven-publish`
 }
+
 val gccIsNeeded = (project.property("gccIsNeeded") as String).toBoolean()
+val drillCommonLibVersion = project.property("drillCommonLibVersion") as String
+val drillJvmApiLibVersion = project.property("drillJvmApiLibVersion") as String
 
 allprojects {
 
@@ -20,10 +23,10 @@ allprojects {
         jcenter()
         maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
         maven(url = "https://dl.bintray.com/kotlin/ktor/")
-        if (version.toString().endsWith("-SNAPSHOT"))
+        if (version.toString().endsWith("-SNAPSHOT")) {
             maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
-        else
-            maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
+        }
+        maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
     }
     tasks.withType<KotlinCompile> {
         kotlinOptions.allWarningsAsErrors = true
@@ -75,7 +78,7 @@ kotlin {
                 implementation(kotlin("reflect")) //TODO jarhell quick fix for kotlin jvm apps
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$jvmCoroutinesVersion")
-                implementation("com.epam.drill:common-jvm:$version")
+                implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
                 implementation("com.epam.drill:drill-agent-part-jvm:$version")
             }
         }
@@ -90,7 +93,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
                 implementation("com.epam.drill:drill-agent-part:$version")
-                implementation("com.epam.drill:common:$version")
+                implementation("com.epam.drill:common:$drillCommonLibVersion")
             }
         }
         named("commonTest") {
@@ -106,8 +109,8 @@ kotlin {
                 implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-io-native:$kotlinxIoVersion")
                 implementation("com.epam.drill:drill-agent-part-native:$version")
-                implementation("com.epam.drill:jvmapi-native:$version")
-                implementation("com.epam.drill:common-native:$version")
+                implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVersion")
+                implementation("com.epam.drill:common-native:$drillCommonLibVersion")
                 implementation(project(":util"))
             }
         }
