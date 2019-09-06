@@ -9,7 +9,7 @@ import java.util.*
 object JwtConfig {
     private const val secret = "HDZZh35d82zdzHJFF86tt"
     private const val issuser = "http://drill-4-j/"
-    private const val validityInMs = (36_000_00 / 60) * 5
+    private const val validityInMs = (36_000_00) * 2
     private val algorithm = Algorithm.HMAC512(secret)
 
     val verifier: JWTVerifier = JWT
