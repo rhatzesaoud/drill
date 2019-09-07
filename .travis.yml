@@ -12,7 +12,10 @@ jobs:
       env: KBUILD=windows
       language: shell # java is not supported but jdk is installed
       script:
-        - powershell -Command "cmd /c travis_win.bat"
+        - |
+          if [ $TRAVIS_BRANCH == "develop" && $TRAVIS_PULL_REQUEST == "false" ]; then
+            powershell -Command "cmd /c travis_win.bat"
+          fi
     - os: osx
       stage: test_and_upload
       env:
@@ -28,6 +31,8 @@ jobs:
         - echo before_script
         - chmod +x ./gradlew
       script:
-        - ./gradlew -s -i build
-        - ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository
-        - ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository
+        - |
+          if [ $TRAVIS_BRANCH == "develop" && $TRAVIS_PULL_REQUEST == "false" ]; then
+              ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository
+              ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository
+          fi

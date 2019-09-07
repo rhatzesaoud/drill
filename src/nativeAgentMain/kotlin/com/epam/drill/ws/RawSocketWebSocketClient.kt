@@ -4,7 +4,7 @@ import com.epam.drill.lang.UTF8
 import com.epam.drill.lang.toByteArray
 import com.epam.drill.lang.toString
 import com.epam.drill.net.AsyncClient
-import com.epam.drill.net.URL
+import com.epam.drill.common.ws.URL
 import com.epam.drill.stream.*
 import com.epam.drill.util.encoding.toBase64
 import kotlinx.coroutines.CoroutineScope

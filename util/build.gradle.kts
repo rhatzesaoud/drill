@@ -1,3 +1,5 @@
+import com.epam.drill.build.drillJvmApiLibVerison
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
@@ -13,24 +15,16 @@ kotlin {
     }
 
     sourceSets {
-        named("winMain") {
+        val commonNativeMain: KotlinSourceSet by creating {
             dependencies {
-                implementation("com.epam.drill:jvmapi-windowsx64:$version")
-                implementation("com.epam.drill:drill-agent-part-windowsx64:$version")
+                implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
+                implementation("com.epam.drill:drill-agent-part-native:$version")
             }
         }
-        named("linuxMain") {
-            dependencies {
-                implementation("com.epam.drill:jvmapi-linuxx64:$version")
-                implementation("com.epam.drill:drill-agent-part-linuxx64:$version")
-            }
-        }
-        named("macMain") {
-            dependencies {
-                implementation("com.epam.drill:jvmapi-macosx64:$version")
-                implementation("com.epam.drill:drill-agent-part-macosx64:$version")
-            }
-        }
+        @Suppress("UNUSED_VARIABLE") val winMain by getting { dependsOn(commonNativeMain) }
+        @Suppress("UNUSED_VARIABLE") val linuxMain by getting { dependsOn(commonNativeMain) }
+        @Suppress("UNUSED_VARIABLE") val macMain by getting { dependsOn(commonNativeMain) }
+
 
     }
 }

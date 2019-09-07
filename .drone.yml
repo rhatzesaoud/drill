@@ -1,0 +1,10 @@
+pipeline:
+
+  check:
+    image: gradle:5.6.1-jdk8
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    commands:
+      - gradle check
+    when:
+      event: [ pull_request ]

@@ -1,6 +1,7 @@
 package com.epam.drill.core
 
 import com.epam.drill.common.*
+import com.epam.drill.common.ws.URL
 import com.epam.drill.plugin.api.processing.*
 import kotlinx.cinterop.*
 import kotlin.collections.set
@@ -8,18 +9,17 @@ import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 class DI {
+    lateinit var adminAddress: URL
+    lateinit var secureAdminAddress: URL
     lateinit var agentConfig: AgentConfig
     lateinit var drillInstallationDir: String
+
     var pstorage: MutableMap<String, AgentPart<*, *>> = mutableMapOf()
     val originalMethod = NativeMethodBinder()
     val objects = mutableMapOf<KClass<*>, Any>()
 
     val pl = mutableMapOf<String, PluginBean>()
 
-
-    init {
-
-    }
 
     @Suppress("unused")
     fun singleton(obj: Any) {

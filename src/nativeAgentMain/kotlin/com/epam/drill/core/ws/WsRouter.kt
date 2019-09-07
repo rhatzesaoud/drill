@@ -1,18 +1,28 @@
 package com.epam.drill.core.ws
 
-import com.epam.drill.common.*
-import com.epam.drill.logger.*
-import com.epam.drill.plugin.*
-import com.epam.drill.plugin.api.processing.*
-import kotlinx.serialization.*
+import com.epam.drill.common.PluginAction
+import com.epam.drill.common.PluginConfig
+import com.epam.drill.common.parse
+import com.epam.drill.common.ws.ServiceConfig
+import com.epam.drill.core.exec
+import com.epam.drill.logger.DLogger
+import com.epam.drill.plugin.PluginManager
+import com.epam.drill.plugin.api.processing.UnloadReason
+import kotlinx.serialization.KSerializer
 import kotlin.collections.set
-import kotlin.native.concurrent.*
+import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.ThreadLocal
 
 @SharedImmutable
 val topicLogger = DLogger("topicLogger")
 
 fun topicRegister() =
     WsRouter {
+
+        topic("/agent/config").withGenericTopic(ServiceConfig.serializer()) { sc ->
+            topicLogger.info { "Agent got a system config: $sc" }
+            exec { secureAdminAddress = adminAddress.copy(scheme = "https", defaultPort = sc.sslPort.toInt()) }
+        }
 
         topic("/plugins/unload").rawMessage { pluginId ->
             topicLogger.warn { "Unload event. Plugin id is $pluginId" }
@@ -62,29 +72,10 @@ fun topicRegister() =
 
         }
 
-//        topic("/agent/updateAgentConfig").withGenericTopic(AgentInfo.serializer()) { info ->
-//            topicLogger.error { "updateAgentConfig event: Info is $info" }
-//            agentInfo = info
-//        }
-
         topic("agent/toggleStandBy").rawMessage {
             topicLogger.warn { "toggleStandBy event" }
-            //fixme toggle
-//            toggleStandby(agentInfo)
-//            agentInfo.isEnable = !agentInfo.isEnable
-//            agentInfo.dumpConfigToFileSystem()
         }
     }
-
-//suspend fun toggleStandby(agentInfo: AgentInfo) {
-//    val toggle: (AgentPart<*, *>) -> Unit =
-//        if (agentInfo.isEnable) { plugin -> PluginManager[plugin.id]?.off() } else { x -> PluginManager[x.id]?.on() }
-//
-//    storage.forEach {
-//        if (pluginConfigById(it.value.id).enabled)
-//            toggle(it.value)
-//    }
-//}
 
 
 @ThreadLocal
@@ -152,9 +143,10 @@ class InfoTopic(
 
 open class FileTopic(
     override val destination: String,
-    open val block: suspend (message: String, file: ByteArray) -> Unit
+    @Suppress("unused") open val block: suspend (message: String, file: ByteArray) -> Unit
 ) : Topic(destination)
 
+@Suppress("unused")
 class PluginTopic(
     override val destination: String,
     newBlock: suspend (message: String, plugin: ByteArray) -> Unit

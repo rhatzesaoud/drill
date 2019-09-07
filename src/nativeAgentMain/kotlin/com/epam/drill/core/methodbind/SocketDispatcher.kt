@@ -52,7 +52,8 @@ fun write0(env: CPointer<JNIEnvVar>, obj: jobject, fd: jobject, address: DirectB
     val fakeBuffer: DirectBufferAddress
     val prefix = address.rawString(min(4, len))
     if (prefix == "HTTP") {
-        val spyHeaders = exec { "\ndrill-agent-id: ${agentConfig.id}\ndrill-admin-url: ${agentConfig.adminUrl}" }
+        val spyHeaders =
+            exec { "\ndrill-agent-id: ${agentConfig.id}\ndrill-admin-url: ${secureAdminAddress.toUrlString(false)}" }
         val contentBodyBytes = address.toPointer().toKStringFromUtf8()
         return if (contentBodyBytes.contains("text/html") || contentBodyBytes.contains("application/json")) {
             val replaceFirst = contentBodyBytes.replaceFirst("\n", "$spyHeaders\n")

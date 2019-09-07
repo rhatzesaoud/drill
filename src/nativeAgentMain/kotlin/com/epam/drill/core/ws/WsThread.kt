@@ -44,21 +44,17 @@ fun startWs() =
             delay(3000)
             try {
                 runBlocking {
-                    websocket(exec { agentConfig.adminUrl })
+                    websocket(exec { adminAddress.toString() })
                 }
             } catch (ex: Exception) {
-//                when (ex) {
-//                    is WsClosedException -> {
-//                    }
                 println(ex.message + "\ntry reconnect\n")
-//                }
             }
         }
     }
 
 
 suspend fun websocket(adminUrl: String) {
-    val url = "ws://$adminUrl/agent/attach"
+    val url = "$adminUrl/agent/attach"
     wsLogger.debug { "try to create websocket $url" }
     val wsClient = RWebsocketClient(
         url = url,
@@ -186,9 +182,6 @@ suspend fun websocket(adminUrl: String) {
                 }.result
                 if (execute != null) {
                     wsClient.send(execute)
-//                    sendWorker.execute(TransferMode.UNSAFE, {}) {
-//                        guaranteeQueue.removeFirstOrNull()
-//                    }.result
                 }
             }
 

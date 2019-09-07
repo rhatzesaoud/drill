@@ -34,7 +34,6 @@ class NativeSocket private constructor(@Suppress("RedundantSuspendModifier") pri
 
             @Suppress("RemoveRedundantCallsOfConversionMethods") val connected =
                 connect(sockfd, inetaddr, sockaddr_in.size.convert())
-            println(connected)
             checkErrors("connect")
             setNonBlocking()
             if (connected != 0) {

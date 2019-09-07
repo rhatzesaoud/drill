@@ -44,7 +44,6 @@ fun resolveAddress(host: String, port: Int) = memScoped {
     val ip = IP.fromHost(host)
     val addr = allocArray<sockaddr_in>(1)
     addr.set(ip, port)
-    println(ip)
     @Suppress("UNCHECKED_CAST")
     addr as CValuesRef<sockaddr>
 
