@@ -1,23 +1,26 @@
 package com.epam.drill.core.ws
 
-import com.epam.drill.common.PluginAction
-import com.epam.drill.common.PluginConfig
-import com.epam.drill.common.parse
-import com.epam.drill.common.ws.ServiceConfig
-import com.epam.drill.core.exec
-import com.epam.drill.logger.DLogger
-import com.epam.drill.plugin.PluginManager
-import com.epam.drill.plugin.api.processing.UnloadReason
-import kotlinx.serialization.KSerializer
+import com.epam.drill.common.*
+import com.epam.drill.common.ws.*
+import com.epam.drill.core.*
+import com.epam.drill.logger.*
+import com.epam.drill.plugin.*
+import com.epam.drill.plugin.api.processing.*
+import kotlinx.serialization.*
 import kotlin.collections.set
-import kotlin.native.concurrent.SharedImmutable
-import kotlin.native.concurrent.ThreadLocal
+import kotlin.native.concurrent.*
 
 @SharedImmutable
 val topicLogger = DLogger("topicLogger")
 
 fun topicRegister() =
     WsRouter {
+
+        topic(DrillEvent.SYNC_STARTED.name).rawMessage { topicLogger.info { "Agent synchronization is started" } }
+        topic(DrillEvent.SYNC_FINISHED.name).rawMessage {
+            exec { agentConfig.needSync = false }
+            topicLogger.info { "Agent synchronization is finished" }
+        }
 
         topic("/agent/config").withGenericTopic(ServiceConfig.serializer()) { sc ->
             topicLogger.info { "Agent got a system config: $sc" }

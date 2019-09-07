@@ -76,28 +76,16 @@ suspend fun websocket(adminUrl: String) {
 
     wsClient.onStringMessage.add { rawMessage ->
         val message = rawMessage.toWsMessage()
-        if (message.type == MessageType.INFO) {
-            when (message.message) {
-                DrillEvent.SYNC_FINISHED.name -> {
-                    exec { agentConfig.needSync = false }
-                    wsLogger.info { "Agent synchronization is finished" }
-                }
-                DrillEvent.SYNC_STARTED.name -> {
-                    wsLogger.info { "Agent synchronization is started" }
-                }
+        val destination = message.destination
+        val topic = WsRouter[destination]
+        if (topic != null) {
+            when (topic) {
+                is FileTopic -> throw RuntimeException("We can't use File topic in not binary retriever")
+                is InfoTopic -> topic.block(message.message)
+                is GenericTopic<*> -> topic.deserializeAndRun(message.message)
             }
         } else {
-            val destination = message.destination
-            val topic = WsRouter[destination]
-            if (topic != null) {
-                when (topic) {
-                    is FileTopic -> throw RuntimeException("We can't use File topic in not binary retriever")
-                    is InfoTopic -> topic.block(message.message)
-                    is GenericTopic<*> -> topic.deserializeAndRun(message.message)
-                }
-            } else {
-                wsLogger.warn { "topic with name '$destination' didn't register" }
-            }
+            wsLogger.warn { "topic with name '$destination' didn't register" }
         }
 
     }
