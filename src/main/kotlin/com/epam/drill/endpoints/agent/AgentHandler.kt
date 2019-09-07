@@ -3,6 +3,7 @@
 package com.epam.drill.endpoints.agent
 
 import com.epam.drill.common.*
+import com.epam.drill.common.ws.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.plugin.*
 import io.ktor.application.*
@@ -42,6 +43,22 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                 if (call.request.headers[NeedSyncParam]!!.toBoolean()) {
                     agentManager.updateAgentConfig(agentInfo)
                 }
+
+                val sslPort = app.environment.config
+                    .config("ktor")
+                    .config("deployment")
+                    .property("sslPort")
+                    .getString()
+
+                send(
+                    Frame.Text(
+                        Message.serializer() stringify Message(
+                            MessageType.MESSAGE,
+                            "/agent/config",
+                            ServiceConfig.serializer() stringify ServiceConfig(sslPort)
+                        )
+                    )
+                )
 
                 try {
                     incoming.consumeEach { frame ->
