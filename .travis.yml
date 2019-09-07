@@ -3,8 +3,8 @@ stages:
   - name: publish
     if: NOT (type = pull_request)
 branches:
-  only:
-    - develop
+    only:
+      - develop
 jobs:
   include:
     - os: windows
@@ -12,7 +12,7 @@ jobs:
       env: KBUILD=windows
       language: shell # java is not supported but jdk is installed
       script:
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" && $TRAVIS_BRANCH == "develop" ]; then  powershell -Command "cmd /c travis_win.bat"; fi'
+        - powershell -Command "cmd /c travis_win.bat"
     - os: osx
       stage: test_and_upload
       env:
@@ -27,9 +27,7 @@ jobs:
       before_script:
         - echo before_script
         - chmod +x ./gradlew
-        - echo $TRAVIS_BRANCH
-        - echo $TRAVIS_PULL_REQUEST
       script:
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" && $TRAVIS_BRANCH == "develop" ]; then ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository; fi'
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" && $TRAVIS_BRANCH == "develop" ]; then ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository; fi'
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" && $TRAVIS_BRANCH == "develop" ]; then echo asdasdasd; fi'
+        - ./gradlew -s -i build
+        - ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository
+        - ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository
