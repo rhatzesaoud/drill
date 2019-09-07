@@ -45,3 +45,6 @@ kotlin {
         @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
     }
 }
+tasks.build {
+    dependsOn("publishToMavenLocal")
+}

@@ -4,10 +4,9 @@ import kotlinx.serialization.*
 
 @Serializable
 data class AgentConfig(
-    val id: String,
-    val adminUrl: String = "",
-    var buildVersion: String,
-    var needSync: Boolean = true
+        val id: String,
+        var buildVersion: String,
+        var needSync: Boolean = true
 
 )
 
