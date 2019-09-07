@@ -28,3 +28,6 @@ kotlin {
         }
     }
 }
+tasks.build {
+    dependsOn("publishToMavenLocal")
+}
