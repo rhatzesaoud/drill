@@ -30,6 +30,8 @@ jobs:
       before_script:
         - echo before_script
         - chmod +x ./gradlew
+        - echo $TRAVIS_BRANCH
+        - echo $TRAVIS_PULL_REQUEST
       script:
         - |
           if [ $TRAVIS_BRANCH == "develop" && $TRAVIS_PULL_REQUEST == "false" ]; then
