@@ -60,10 +60,10 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
             }.apply {
                 this.buildVersions =
-                        SizedCollection(AgentBuildVersion.new {
-                            this.buildVersion = pBuildVersion
-                            this.name = INITIAL_BUILD_ALIAS
-                        })
+                    SizedCollection(AgentBuildVersion.new {
+                        this.buildVersion = pBuildVersion
+                        this.name = INITIAL_BUILD_ALIAS
+                    })
             }.toAgentInfo()
         }
 
@@ -177,9 +177,11 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         val session = agentSession(agentInfo.id)
         session!!.send(
             Frame.Text(
-                Message.serializer() stringify Message(MessageType.INFO, "", DrillEvent.SYNC_STARTED.name)
+                Message.serializer() stringify Message(
+                    MessageType.MESSAGE,
+                    DrillEvent.SYNC_STARTED.name
+                )
             )
-
         )
         agentInfo.plugins.forEach { pb ->
             val pluginId = pb.id
@@ -209,7 +211,10 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
         session.send(
             Frame.Text(
-                Message.serializer() stringify Message(MessageType.INFO, "", DrillEvent.SYNC_FINISHED.name)
+                Message.serializer() stringify Message(
+                    MessageType.MESSAGE,
+                    DrillEvent.SYNC_FINISHED.name
+                )
             )
         )
 
