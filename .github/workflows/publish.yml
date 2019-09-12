@@ -1,0 +1,34 @@
+name: Build & publish admin
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build_and_publish:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build
+        run: |
+          gradle build check
+        env:
+          KONAN_DATA_DIR: /home/gradle/.gradle/konan
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+      - name: Publish
+        run: |
+          gradle downloadPlugins
+          gradle jib\
+          -Djib.to.auth.username=${DRILL_USERNAME}\
+          -Djib.to.auth.password=${DRILL_PASSWORD}\
+          -Djib.to.tags=coverage-latest\
+          -Djib.extraDirectories.paths=$${PWD}/distr,$${PWD}/ssl
+          gradle publishAdminPublicationToMavenRepository
+          -PbintrayUser=$${BINTRAY_USER}\
+          -PbintrayApiKey=$${BINTRAY_API}
+        env:
+          DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
+          DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API: ${{ secrets.BINTRAY_API }}
