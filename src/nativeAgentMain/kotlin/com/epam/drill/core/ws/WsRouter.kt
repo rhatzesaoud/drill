@@ -46,13 +46,16 @@ fun topicRegister() =
         }
 
         topic("/plugins/updatePluginConfig").withGenericTopic(PluginConfig.serializer()) { config ->
-            topicLogger.warn { "updatePluginConfig event: message is $config " }
+            topicLogger.warn { "UpdatePluginConfig event: message is $config " }
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
+                agentPluginPart.setEnabled(false)
+                agentPluginPart.off()
                 agentPluginPart.updateRawConfig(config)
                 agentPluginPart.np?.updateRawConfig(config)
+                agentPluginPart.setEnabled(true)
                 agentPluginPart.on()
-                topicLogger.warn { "new settings for ${config.id} saved to file" }
+                topicLogger.warn { "New settings for ${config.id} saved" }
             } else
                 topicLogger.warn { "Plugin ${config.id} not loaded to agent" }
 
