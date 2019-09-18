@@ -34,7 +34,6 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
       - name: Publish
         run: |
-          gradlew --no-daemon -s -i windowsX64Test
           gradlew --no-daemon -s -i publishMingwX64ZipPublicationToMavenRepository
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
