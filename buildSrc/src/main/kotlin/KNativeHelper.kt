@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
 
+val isDevMode = System.getProperty("idea.active") == "true"
+
 val preset =
     when {
         Os.isFamily(Os.FAMILY_MAC) -> "macosX64"
@@ -12,10 +14,10 @@ val preset =
     }
 
 fun KotlinMultiplatformExtension.currentTarget(
-    name: String,
+    name: String? = null,
     config: KotlinNativeTarget.() -> Unit = {}
 ): KotlinNativeTarget {
-    val createTarget = (presets.getByName(preset) as KotlinNativeTargetPreset).createTarget(name)
+    val createTarget = (presets.getByName(preset) as KotlinNativeTargetPreset).createTarget(name ?: preset)
     targets.add(createTarget)
     config(createTarget)
     return createTarget

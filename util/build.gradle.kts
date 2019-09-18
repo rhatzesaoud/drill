@@ -5,12 +5,15 @@ plugins {
     id("kotlin-multiplatform")
 }
 
-
 kotlin {
     targets {
-        mingwX64("win")
-        linuxX64("linux")
-        macosX64("mac")
+        if (isDevMode) {
+            currentTarget()
+        } else {
+            mingwX64()
+            linuxX64()
+            macosX64()
+        }
     }
 
     sourceSets {
@@ -20,10 +23,15 @@ kotlin {
                 implementation("com.epam.drill:drill-agent-part-native:$version")
             }
         }
-        @Suppress("UNUSED_VARIABLE") val winMain by getting { dependsOn(commonNativeMain) }
-        @Suppress("UNUSED_VARIABLE") val linuxMain by getting { dependsOn(commonNativeMain) }
-        @Suppress("UNUSED_VARIABLE") val macMain by getting { dependsOn(commonNativeMain) }
-
+        if (isDevMode) {
+            with(getByName(preset + "Main")) {
+                dependsOn(commonNativeMain)
+            }
+        } else {
+            @Suppress("UNUSED_VARIABLE") val mingwX64Main by getting { dependsOn(commonNativeMain) }
+            @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(commonNativeMain) }
+            @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeMain) }
+        }
 
     }
 }

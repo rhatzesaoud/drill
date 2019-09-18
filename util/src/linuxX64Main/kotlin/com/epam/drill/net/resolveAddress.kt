@@ -73,6 +73,7 @@ fun setSocketNonBlocking(sockRaw: ULong) {
     fcntl(sockRaw.toInt(), F_SETFL, flags)
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun checkErrors(name: String) {
-    println("check the $name error")
+//    println("check the $name error")
 }

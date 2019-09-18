@@ -35,7 +35,7 @@ allprojects {
 
 val libName = "drill-agent"
 val nativeTargets = mutableSetOf<KotlinNativeTarget>()
-val isDevMode = System.getProperty("idea.active") == "true"
+
 kotlin {
     targets {
         if (isDevMode) {
