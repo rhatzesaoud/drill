@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build & Test
         run: |
-          gradlew -si --no-daemon build windowsX64Test
+          gradlew -si --no-daemon build mingwX64Test
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
       - name: Publish
