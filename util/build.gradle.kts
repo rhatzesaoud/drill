@@ -1,4 +1,3 @@
-import com.epam.drill.build.drillJvmApiLibVerison
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 

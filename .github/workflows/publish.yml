@@ -1,0 +1,41 @@
+name: Build & publish agent artifacts
+on:
+  push:
+    branches:
+      - develop
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+jobs:
+  build_and_publish_for_nix:
+    name: Publish for nix platforms (macOS, Linux)
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check
+        run: ./gradlew -si --no-daemon check
+      - name: Publish
+        run: |
+          ./gradlew -s -i check
+          ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository
+          ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+  build_and_publish_for_win:
+    name: Publish for Windows platform (Windows platform)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build & Test
+        run: |
+          gradlew -si --no-daemon build windowsX64Test
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+      - name: Publish
+        run: |
+          gradlew --no-daemon -s -i windowsX64Test
+          gradlew --no-daemon -s -i publishMingwX64ZipPublicationToMavenRepository
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}

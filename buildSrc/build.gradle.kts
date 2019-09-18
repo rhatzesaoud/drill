@@ -13,6 +13,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
     implementation(kotlin("reflect", kotlinVersion))
+    implementation("com.palantir.gradle.gitversion:gradle-git-version:0.12.2")
 }
 
 kotlinDslPluginOptions {

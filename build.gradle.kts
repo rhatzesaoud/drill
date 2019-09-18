@@ -1,4 +1,3 @@
-import com.epam.drill.build.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -14,6 +13,7 @@ plugins {
 val gccIsNeeded = (project.property("gccIsNeeded") as String).toBoolean()
 
 allprojects {
+    setupVersion()
 
     repositories {
         mavenCentral()
