@@ -33,7 +33,7 @@ private fun VersionDetails.toProjectVersion() = object {
             val (_, major, minor, patch) = matched.groupValues
             when (commitDistance) {
                 0 -> "$major.$minor.$patch"
-                else -> "$major.${minor + 1}.$patch-SNAPSHOT"
+                else -> "$major.${minor.toInt() + 1}.$patch-SNAPSHOT"
             }
         }
         else -> when {
