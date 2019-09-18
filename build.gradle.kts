@@ -1,7 +1,3 @@
-import com.epam.drill.build.*
-import com.palantir.gradle.gitversion.VersionDetails
-import groovy.json.JsonOutput
-import groovy.lang.Closure
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -11,15 +7,16 @@ plugins {
     application
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "5.1.0"
-    id("com.palantir.git-version") version "0.12.0-rc2"
 }
+
+setupVersion()
 
 repositories {
     mavenCentral()
     jcenter()
     maven(url = "https://dl.bintray.com/kodein-framework/Kodein-DI/")
     mavenLocal()
-    if (version.toString().endsWith("-SNAPSHOT")) {
+    if ("$version".endsWith("-SNAPSHOT")) {
         maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
     }
     maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
@@ -46,10 +43,10 @@ application {
 val remotePlugins: Configuration by configurations.creating {}
 
 dependencies {
-    remotePlugins("com.epam.drill:coverage-plugin:$version")
+    remotePlugins("com.epam.drill:coverage-plugin:0.3.0")
 
     implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
-    implementation("com.epam.drill:drill-admin-part-jvm:$version")
+    implementation("com.epam.drill:drill-admin-part-jvm:$drillPluginApiVersion")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
     implementation("org.litote.kmongo:kmongo:3.9.0")
@@ -79,7 +76,7 @@ jib {
     }
     to {
         image = "drill4j/${project.name}"
-        tags = mutableSetOf("latest")
+        tags = setOf("${project.version}")
     }
     container {
         ports = listOf("8090", "5006")
@@ -89,26 +86,16 @@ jib {
     }
 }
 
-sourceSets {
-    main {
-        output.setResourcesDir(file("build/classes/kotlin/main"))
-    }
-}
-
 tasks {
+
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.locations.KtorExperimentalLocationsAPI"
+        kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.util.KtorExperimentalAPI"
+        kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.Experimental"
     }
-}
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.locations.KtorExperimentalLocationsAPI"
-    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.util.KtorExperimentalAPI"
-    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.Experimental"
-}
-
-tasks {
-    val downloadPlugins by register("downloadPlugins", Copy::class) {
+    val downloadPlugins by registering(Copy::class) {
         from(remotePlugins.files.filter { it.extension == "zip" })
         into(rootDir.resolve("distr").resolve("adminStorage"))
     }
@@ -116,30 +103,12 @@ tasks {
     named("run") {
         dependsOn(downloadPlugins)
     }
-    val createVersion by registering {
-        doLast {
-            @Suppress("UNCHECKED_CAST") val details =
-                (project.extensions.extraProperties.get("versionDetails") as Closure<VersionDetails>).invoke()
-            val versionFile = JsonOutput.toJson(
-                mapOf(
-                    "version" to project.version,
-                    "lastTag" to details.lastTag,
-                    "commitDistance" to details.commitDistance,
-                    "gitHash" to details.gitHashFull,
-                    "branchName" to details.branchName
-                )
-            )
-
-            project.sourceSets["main"].output.resourcesDir?.let {
-                file(it).resolve("version.json").writeText(versionFile)
-            }
-        }
+    
+    named("jib") {
+        dependsOn(downloadPlugins)
     }
-    classes {
-        dependsOn(createVersion)
-    }
-
 }
+
 publishing {
     repositories {
         maven {
