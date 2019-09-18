@@ -8,7 +8,7 @@ import kotlinx.cinterop.*
 class InstrumentationNativePlugin(
     pluginApiClass: jclass,
     userPlugin: jobject,
-    pluginConfig: PluginBean,
+    pluginConfig: PluginMetadata,
     private val qs: jmethodID? = GetMethodID(pluginApiClass, "instrument", "(Ljava/lang/String;[B)[B")
 ) : GenericNativePlugin(pluginApiClass, userPlugin, pluginConfig),
     InstrumentationPlugin {

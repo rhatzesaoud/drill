@@ -9,6 +9,6 @@ actual val storage: MutableMap<String, AgentPart<*, *>>
     get() = ConcurrentHashMap()
 
 
-actual fun AgentPart<*, *>.actualPluginConfig(): PluginBean {
+actual fun AgentPart<*, *>.actualPluginConfig(): PluginMetadata {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 }

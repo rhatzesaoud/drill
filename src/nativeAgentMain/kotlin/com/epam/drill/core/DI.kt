@@ -18,7 +18,7 @@ class DI {
     val originalMethod = NativeMethodBinder()
     val objects = mutableMapOf<KClass<*>, Any>()
 
-    val pl = mutableMapOf<String, PluginBean>()
+    val pl = mutableMapOf<String, PluginMetadata>()
 
 
     @Suppress("unused")

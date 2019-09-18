@@ -4,15 +4,12 @@ import com.epam.drill.common.*
 import com.epam.drill.core.*
 import com.epam.drill.core.concurrency.*
 import com.epam.drill.core.exceptions.*
-import com.epam.drill.core.messanger.*
-import com.epam.drill.core.plugin.loader.*
+import com.epam.drill.crypto.*
 import com.epam.drill.logger.*
 import com.epam.drill.ws.*
-import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
-import kotlin.collections.set
 import kotlin.native.concurrent.*
 
 @SharedImmutable
@@ -29,6 +26,10 @@ val loader = Worker.start(true)
 
 @ThreadLocal
 private val guaranteeQueue = LockFreeMPSCQueue<String>()
+
+
+@ThreadLocal
+private val binaryTopicsStorage = HashMap<PluginMetadata, PluginTopic>()
 
 fun sendMessage(message: String) {
     sendWorker.execute(TransferMode.UNSAFE, { message }) {
@@ -80,77 +81,31 @@ suspend fun websocket(adminUrl: String) {
         val topic = WsRouter[destination]
         if (topic != null) {
             when (topic) {
-                is FileTopic -> throw RuntimeException("We can't use File topic in not binary retriever")
-                is InfoTopic -> topic.block(message.message)
-                is GenericTopic<*> -> topic.deserializeAndRun(message.message)
+                is PluginTopic -> {
+                    val pluginMetadata = PluginMetadata.serializer() parse message.data
+                    binaryTopicsStorage[pluginMetadata] = topic
+                }
+                is InfoTopic -> topic.block(message.data)
+                is GenericTopic<*> -> {
+                    topic.deserializeAndRun(message.data)
+                    sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE_DELIVERED, destination))
+                }
             }
         } else {
             wsLogger.warn { "topic with name '$destination' didn't register" }
         }
 
     }
-    wsClient.onBinaryMessage.add {
-        val load = Cbor.load(PluginMessage.serializer(), it)
-        if (exec { pstorage[load.pl.id] } != null) return@add
-        when {
-            load.event == DrillEvent.LOAD_PLUGIN -> {
-                val pluginId = load.pl.id
-                exec { pl[pluginId] = load.pl }
-                loader.execute(TransferMode.UNSAFE, { load }) { plugMessage ->
-                    println("try to load ${plugMessage.pl.id} plugin")
-                    runBlocking {
-                        exec { agentConfig.needSync = false }
-                        val id = plugMessage.pl.id
-                        val ajar = "agent-part.jar"
 
-                        val src = plugMessage.pluginFile.toByteArray()
-                        val pluginsDir = "$drillInstallationDir/drill-plugins"
-                        com.epam.drill.doMkdir(pluginsDir)
-                        val pluginDir = "$pluginsDir/$id"
-                        com.epam.drill.doMkdir(pluginDir)
-                        val path = "$pluginDir/$ajar"
-
-                        writeFileAsync(path, src)
-                        loadPlugin(path, plugMessage.pl)
-
-                        if (plugMessage.nativePart != null) {
-                            val natPlugin = when {
-                                plugMessage.nativePart!!.windowsPlugin.isNotEmpty() -> {
-                                    val nativePath = "$pluginDir/native_plugin.dll"
-                                    writeFileAsync(nativePath, plugMessage.nativePart!!.windowsPlugin.toByteArray())
-                                    nativePath
-                                }
-                                plugMessage.nativePart!!.linuxPluginFileBytes.isNotEmpty() -> {
-                                    val nativePath = "$pluginDir/native_plugin.so"
-                                    writeFileAsync(
-                                        nativePath,
-                                        plugMessage.nativePart!!.linuxPluginFileBytes.toByteArray()
-                                    )
-                                    nativePath
-                                }
-                                else -> {
-                                    throw RuntimeException()
-                                }
-                            }
-                            val loadNativePlugin = com.epam.drill.loadNativePlugin(
-                                id,
-                                natPlugin,
-                                staticCFunction(::sendNativeMessage)
-                            )
-                            loadNativePlugin?.initPlugin()
-                            loadNativePlugin?.on()
-                        }
-
-                    }
-                    println("${plugMessage.pl.id} plugin loaded")
-                    //TODO spinner hack
-                    sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE, "", "OK"))
-                }
-            }
+    wsClient.onBinaryMessage.add { rawFile ->
+        val md5FileHash = rawFile.md5().toHexString()
+        wsLogger.info { "got '$md5FileHash' file to binary channel" }
+        val metadata = binaryTopicsStorage.keys.first { it.md5Hash == md5FileHash }
+        binaryTopicsStorage.remove(metadata)?.block?.invoke(metadata, rawFile) ?: run {
+            wsLogger.warn { "can't find corresponded config fo'$md5FileHash' hash" }
         }
-
-
     }
+
     wsClient.onError.add {
         wsLogger.error { "WS error: ${it.message}" }
     }
@@ -178,11 +133,9 @@ suspend fun websocket(adminUrl: String) {
 }
 
 
-private fun String.toWsMessage(): Message {
-    println("Action form admin: '$this'")
-    return Message.serializer().parse(this)
-}
+private fun String.toWsMessage() = Message.serializer().parse(this)
 
+fun ByteArray.toHexString() = asUByteArray().joinToString("") { it.toString(16).padStart(2, '0') }
 
 fun Worker.executeCoroutines(block: suspend CoroutineScope.() -> Unit): Future<Unit> {
     return this.execute(TransferMode.UNSAFE, { block }) {
@@ -191,7 +144,7 @@ fun Worker.executeCoroutines(block: suspend CoroutineScope.() -> Unit): Future<U
                 it(this)
             }
         } catch (ex: Throwable) {
-            println("ss")
+            wsLogger.error { ex.message ?: "" }
         }
     }
 }

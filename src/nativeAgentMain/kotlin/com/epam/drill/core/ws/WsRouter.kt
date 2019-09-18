@@ -1,11 +1,16 @@
 package com.epam.drill.core.ws
 
+import com.epam.drill.*
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
+import com.epam.drill.core.messanger.*
+import com.epam.drill.core.plugin.loader.*
 import com.epam.drill.logger.*
 import com.epam.drill.plugin.*
 import com.epam.drill.plugin.api.processing.*
+import kotlinx.cinterop.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.collections.set
 import kotlin.native.concurrent.*
@@ -16,7 +21,51 @@ val topicLogger = DLogger("topicLogger")
 fun topicRegister() =
     WsRouter {
 
-        topic(DrillEvent.SYNC_STARTED.name).rawMessage { topicLogger.info { "Agent synchronization is started" } }
+        topic("/agent/do-idle").rawMessage {
+            topicLogger.info { "Change the state of the AGENT!" }
+        }
+        topic("/agent/do-busy").rawMessage {
+            topicLogger.info { "Change the state of the AGENT!" }
+        }
+        topic(DrillEvent.SYNC_STARTED.name).rawMessage {
+            topicLogger.info { "Agent synchronization is started" }
+        }
+
+
+        topic("/plugins/load").withPluginTopic { pluginMeta, file ->
+            if (exec { pstorage[pluginMeta.id] } != null) {
+                topicLogger.info { "Plugin '${pluginMeta.id}' is already loaded" }
+                sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE_DELIVERED, "/plugins/load"))
+                return@withPluginTopic
+            }
+            val pluginId = pluginMeta.id
+            exec { pl[pluginId] = pluginMeta }
+            loader.execute(TransferMode.UNSAFE, { pluginMeta to file }) { (plugMessage, file) ->
+                topicLogger.info { "try to load ${plugMessage.id} plugin" }
+                val id = plugMessage.id
+                exec { agentConfig.needSync = false }
+                if (!plugMessage.isNative) runBlocking {
+                    val path = generatePluginPath(id)
+                    writeFileAsync(path, file)
+                    loadPlugin(path, plugMessage)
+                } else {
+                    val natPlugin = generateNativePluginPath(id)
+
+                    val loadNativePlugin = loadNativePlugin(
+                        id,
+                        natPlugin,
+                        staticCFunction(::sendNativeMessage)
+                    )
+                    loadNativePlugin?.initPlugin()
+                    loadNativePlugin?.on()
+                }
+                topicLogger.info { "$id plugin loaded" }
+
+                sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE_DELIVERED, "/plugins/load"))
+            }
+
+        }
+
         topic(DrillEvent.SYNC_FINISHED.name).rawMessage {
             exec { agentConfig.needSync = false }
             topicLogger.info { "Agent synchronization is finished" }
@@ -55,7 +104,7 @@ fun topicRegister() =
                 agentPluginPart.np?.updateRawConfig(config)
                 agentPluginPart.setEnabled(true)
                 agentPluginPart.on()
-                topicLogger.warn { "New settings for ${config.id} saved" }
+                topicLogger.warn { "New settings for ${config.id} saved to file" }
             } else
                 topicLogger.warn { "Plugin ${config.id} not loaded to agent" }
 
@@ -83,6 +132,20 @@ fun topicRegister() =
         }
     }
 
+private fun generateNativePluginPath(id: String): String {
+    //fixme do generate Native path
+    return "$id/native_plugin.os_lib"
+}
+private fun generatePluginPath(id: String): String {
+    val ajar = "agent-part.jar"
+    val pluginsDir = "$drillInstallationDir/drill-plugins"
+    doMkdir(pluginsDir)
+    val pluginDir = "$pluginsDir/$id"
+    doMkdir(pluginDir)
+    val path = "$pluginDir/$ajar"
+    return path
+}
+
 
 @ThreadLocal
 object WsRouter {
@@ -103,8 +166,8 @@ object WsRouter {
 
 
         @Suppress("unused")
-        fun withFileTopic(block: suspend (message: String, file: ByteArray) -> Unit): FileTopic {
-            val fileTopic = FileTopic(destination, block)
+        fun withPluginTopic(block: suspend (message: PluginMetadata, file: ByteArray) -> Unit): PluginTopic {
+            val fileTopic = PluginTopic(destination, block)
             mapper[destination] = fileTopic
             return fileTopic
         }
@@ -147,13 +210,8 @@ class InfoTopic(
 ) : Topic(destination)
 
 
-open class FileTopic(
+open class PluginTopic(
     override val destination: String,
-    @Suppress("unused") open val block: suspend (message: String, file: ByteArray) -> Unit
+    @Suppress("unused") open val block: suspend (message: PluginMetadata, file: ByteArray) -> Unit
 ) : Topic(destination)
 
-@Suppress("unused")
-class PluginTopic(
-    override val destination: String,
-    newBlock: suspend (message: String, plugin: ByteArray) -> Unit
-) : FileTopic(destination, newBlock)

@@ -6,4 +6,4 @@ import com.epam.drill.plugin.api.processing.*
 expect val storage: MutableMap<String, AgentPart<*, *>>
 
 
-expect fun AgentPart<*, *>.actualPluginConfig(): PluginBean
+expect fun AgentPart<*, *>.actualPluginConfig(): PluginMetadata
