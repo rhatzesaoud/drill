@@ -1,0 +1,14 @@
+name: Check agent
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  check_nix:
+    name: Check for nix platforms (macOS, Linux)
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check
+        run: gradle -si --no-daemon check
