@@ -28,8 +28,7 @@ class WsTopic(override val kodein: Kodein) : KodeinAware {
         val filter = xas.filter { it.key.count { c -> c == '/' } + 1 == split.size }.filter {
             var matche = true
             it.key.split("/").forEachIndexed { x, y ->
-                if (y == split[x] || y.startsWith("{")) {
-                } else {
+                if (y != split[x] && !y.startsWith("{")) {
                     matche = false
                 }
             }
@@ -40,8 +39,7 @@ class WsTopic(override val kodein: Kodein) : KodeinAware {
         val parameters = next.run {
             val mutableMapOf = mutableMapOf<String, String>()
             key.split("/").forEachIndexed { x, y ->
-                if (y == split[x]) {
-                } else if (p.matches(y)) {
+                if (y != split[x] && p.matches(y)) {
                     mutableMapOf[p.find(y)!!.groupValues[1]] = split[x]
                 }
             }
@@ -71,8 +69,8 @@ class Temp<T, R>(val block: (R, MutableSet<DrillWsSession>) -> T) {
 @UseExperimental(ImplicitReflectionSerializer::class)
 fun serialize(value: Any?): String {
     if (value == null) return ""
+    if (value is String) return value
     val serializer = when (value) {
-        is String -> null
         is List<*> -> ArrayListSerializer(elementSerializer(value))
         is Set<*> -> HashSetSerializer(elementSerializer(value))
         is Map<*, *> -> HashMapSerializer(
@@ -89,10 +87,8 @@ fun serialize(value: Any?): String {
         else -> value::class.serializer()
     }
     @Suppress("UNCHECKED_CAST")
-    return if (serializer != null) {
-        serializer as KSerializer<Any> stringify value
-    } else value as String
+    return serializer as KSerializer<Any> stringify value
 }
 
 @UseExperimental(ImplicitReflectionSerializer::class)
-fun elementSerializer(collection: Collection<*>) = (collection.firstOrNull() ?: String)::class.serializer()
+fun elementSerializer(collection: Collection<*>) = (collection.firstOrNull() ?: "")::class.serializer()
