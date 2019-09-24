@@ -2,27 +2,15 @@ import com.google.gson.*
 import com.palantir.gradle.gitversion.*
 import groovy.lang.*
 import org.gradle.api.*
-import org.gradle.api.plugins.*
 import org.gradle.kotlin.dsl.*
-import java.io.*
-
-val serializationRuntimeVersion = "0.12.0"
-
-val ktorVersion = "1.2.4"
-
-val drillCommonLibVersion = "0.1.1"
-val drillPluginApiVersion = "0.3.0"
-
-
-val Project.generatedResourcesDir: File
-    get() = buildDir.resolve("generated-resources")
-
+import org.gradle.language.jvm.tasks.*
 
 val Project.versionDetails: VersionDetails
     get() {
         val versionDetails: Closure<VersionDetails> by extra
         return versionDetails()
     }
+
 const val DEFAULT_VERSION = "0.3.0-SNAPSHOT"
 
 private fun VersionDetails.toProjectVersion() = object {
@@ -33,7 +21,7 @@ private fun VersionDetails.toProjectVersion() = object {
             val (_, major, minor, patch) = matched.groupValues
             when (commitDistance) {
                 0 -> "$major.$minor.$patch"
-                else -> "$major.${minor.toInt() + 1}.$patch-SNAPSHOT"
+                else -> "$major.${minor.toInt().inc()}.$patch-SNAPSHOT"
             }
         }
         else -> when {
@@ -55,25 +43,25 @@ fun Project.setupVersion() {
 
     version = versionDetails.toProjectVersion()
 
-    val generateVersionJson by tasks.registering {
-        group = "versioning"
-        outputs.upToDateWhen { false }
-        outputs.dir(generatedResourcesDir)
-        doLast {
-            val versionInfo = VersionInfo(
-                version = "${project.version}",
-                lastTag = versionDetails.lastTag,
-                commitDistance = versionDetails.commitDistance,
-                gitHash = versionDetails.gitHash
-            )
-            val versionFile = generatedResourcesDir.resolve("version.json")
-            versionFile.writeText(Gson().toJson(versionInfo))
+    tasks {
+        val generateVersionJson by registering {
+            group = "versioning"
+            val versionFile = buildDir.resolve("version.json")
+            inputs.dir(".git")
+            outputs.file(versionFile)
+            doLast {
+                val versionInfo = VersionInfo(
+                    version = "${project.version}",
+                    lastTag = versionDetails.lastTag,
+                    commitDistance = versionDetails.commitDistance,
+                    gitHash = versionDetails.gitHash
+                )
+                versionFile.writeText(Gson().toJson(versionInfo))
+            }
         }
-    }
 
-    withConvention(JavaPluginConvention::class) {
-        sourceSets.named("main") {
-            output.dir(mapOf("builtBy" to generateVersionJson), generatedResourcesDir)
+        withType(ProcessResources::class) {
+            from(generateVersionJson)
         }
     }
 }
