@@ -1,0 +1,14 @@
+name: Check plugin-api
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  check_for_nix:
+    name: Check for nix platforms
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check
+        run: gradle -si --no-daemon check
