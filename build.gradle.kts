@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     id("kotlinx-serialization")
-    id("com.google.cloud.tools.jib") version "1.2.0"
+    id("com.google.cloud.tools.jib") version "1.6.1"
     application
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "5.1.0"
