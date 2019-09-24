@@ -6,6 +6,7 @@ import com.epam.drill.*
 import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
+import com.epam.drill.endpoints.agent.AgentWsSession
 import com.epam.drill.endpoints.plugin.*
 import com.epam.drill.jwt.config.*
 import com.epam.drill.storage.*
@@ -155,7 +156,7 @@ class DrillPluginWsTest {
                 agentStorage.put(
                     agentInfo.id, AgentEntry(
                         agentInfo,
-                        DefWebSocketSessionStub()
+                        AgentWsSession(DefWebSocketSessionStub())
                     )
                 )
                 wsPluginService?.send(agentInfo, destination, messageForTest)
@@ -180,7 +181,9 @@ class DrillPluginWsTest {
     }
 }
 
-class DefWebSocketSessionStub : DefaultWebSocketSession {
+class DefWebSocketSessionStub : DefaultWebSocketServerSession{
+    override val call: ApplicationCall
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
     override val closeReason: Deferred<CloseReason?>
         get() = TODO("not implemented")

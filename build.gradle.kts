@@ -46,7 +46,7 @@ dependencies {
     remotePlugins("com.epam.drill:coverage-plugin:0.3.0")
 
     implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
-    implementation("com.epam.drill:drill-admin-part-jvm:$drillPluginApiVersion")
+    implementation("com.epam.drill:drill-admin-part-jvm:$version")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
     implementation("org.litote.kmongo:kmongo:3.9.0")
@@ -93,6 +93,7 @@ tasks {
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.locations.KtorExperimentalLocationsAPI"
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.util.KtorExperimentalAPI"
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.Experimental"
+        kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlinx.serialization.ImplicitReflectionSerializer"
     }
 
     val downloadPlugins by registering(Copy::class) {

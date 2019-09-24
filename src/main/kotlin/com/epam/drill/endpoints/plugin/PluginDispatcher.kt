@@ -91,8 +91,8 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                                 agentManager.agentSession(agentId)?.apply {
                                     val agentAction = PluginAction(pluginId, agentPartMsg)
                                     val agentPluginMsg = PluginAction.serializer() stringify agentAction
-                                    val agentMsg = WsMessage(WsMessageType.MESSAGE, "/plugins/action", agentPluginMsg)
-                                    val agentFrame = Frame.Text(WsMessage.serializer() stringify agentMsg)
+                                    val agentMsg = Message(MessageType.MESSAGE, "/plugins/action", agentPluginMsg)
+                                    val agentFrame = Frame.Text(Message.serializer() stringify agentMsg)
                                     send(agentFrame)
                                 }
                             }

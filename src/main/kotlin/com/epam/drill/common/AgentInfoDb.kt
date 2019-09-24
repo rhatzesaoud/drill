@@ -96,7 +96,7 @@ fun AgentInfoDb.toAgentInfo() =
     )
 
 fun PluginBeanDb.toPluginBean() =
-    PluginBean(
+    PluginMetadata(
         id = this.pluginId,
         name = this.name,
         description = this.description,
@@ -135,7 +135,7 @@ suspend fun AgentInfo.update(agentManager: AgentManager) {
     agentManager.singleUpdate(this.id)
 }
 
-fun PluginBeanDb.fill(plugin: PluginBean) = this.apply {
+fun PluginBeanDb.fill(plugin: PluginMetadata) = this.apply {
     this.pluginId = plugin.id
     this.name = plugin.name
     this.description = plugin.description

@@ -36,7 +36,7 @@ val drillWorkDir = drillHomeDir.resolve("work")
 
 val storage = Kodein.Module(name = "agentStorage") {
     bind<DataSourceRegistry>() with eagerSingleton { DataSourceRegistry() }
-    bind<ObservableMapStorage<String, AgentEntry, MutableSet<DrillWsSession>>>() with singleton { ObservableMapStorage<String, AgentEntry, MutableSet<DrillWsSession>>() }
+    bind<ObservableMapStorage<String, AgentEntry, MutableSet<AgentWsSession>>>() with singleton { ObservableMapStorage<String, AgentEntry, MutableSet<AgentWsSession>>() }
     bind<WsTopic>() with singleton { WsTopic(kodein) }
     bind<ServerWsTopics>() with eagerSingleton { ServerWsTopics(kodein) }
     bind<MutableSet<DrillWsSession>>() with eagerSingleton { HashSet<DrillWsSession>() }

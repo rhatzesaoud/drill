@@ -42,7 +42,7 @@ class PluginLoaderService(override val kodein: Kodein) : KodeinAware {
                         if (configEntry != null) {
                             val configText = jar.getInputStream(configEntry).reader().readText()
                             @Suppress("EXPERIMENTAL_API_USAGE")
-                            val config = Json.parse(PluginBean.serializer(), configText)
+                            val config = Json.parse(PluginMetadata.serializer(), configText)
                             val pluginId = config.id
                             if (pluginId !in plugins.keys) {
                                 val adminPartFile = jar.extractPluginEntry(pluginId, "admin-part.jar")

@@ -1,18 +1,25 @@
 package com.epam.drill.endpoints
 
-import com.epam.drill.agentmanager.*
+import com.epam.drill.agentmanager.AgentInfoWebSocketSingle
 import com.epam.drill.common.*
-import com.epam.drill.dataclasses.*
-import com.epam.drill.plugins.*
-import com.epam.drill.service.*
-import com.epam.drill.storage.*
-import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.serialization.cbor.*
-import mu.*
-import org.jetbrains.exposed.sql.*
-import org.kodein.di.*
-import org.kodein.di.generic.*
+import com.epam.drill.dataclasses.AgentBuildVersion
+import com.epam.drill.endpoints.agent.AgentWsSession
+import com.epam.drill.endpoints.agent.sendBinary
+import com.epam.drill.plugins.Plugins
+import com.epam.drill.plugins.agentPluginPart
+import com.epam.drill.service.asyncTransaction
+import com.epam.drill.storage.AgentStorage
+import io.ktor.application.Application
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import mu.KotlinLogging
+import org.apache.commons.codec.digest.DigestUtils
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.generic.instance
 
 private val logger = KotlinLogging.logger {}
 
@@ -20,6 +27,7 @@ const val INITIAL_BUILD_ALIAS = "Initial build"
 
 class AgentManager(override val kodein: Kodein) : KodeinAware {
 
+    val app: Application by instance()
     val agentStorage: AgentStorage by instance()
     val plugins: Plugins by instance()
 
@@ -113,7 +121,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         agentStorage.singleUpdate(agentId)
     }
 
-    suspend fun put(agentInfo: AgentInfo, session: DefaultWebSocketSession) {
+    suspend fun put(agentInfo: AgentInfo, session: AgentWsSession) {
         agentStorage.put(agentInfo.id, AgentEntry(agentInfo, session))
     }
 
@@ -170,54 +178,22 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         logger.info { "Plugin $pluginId successfully added to agent with id $agentId!" }
     }
 
-    suspend fun updateAgentConfig(agentInfo: AgentInfo) {
-
-        val enabled = agentInfo.status == AgentStatus.READY
-
-        val session = agentSession(agentInfo.id)
-        session!!.send(
-            Frame.Text(
-                Message.serializer() stringify Message(
-                    MessageType.MESSAGE,
-                    DrillEvent.SYNC_STARTED.name
-                )
-            )
-        )
-        agentInfo.plugins.forEach { pb ->
-            val pluginId = pb.id
-            plugins[pluginId]?.agentPluginPart?.let { agentPluginPart ->
-                val pluginMessage =
-                    PluginMessage(
-                        DrillEvent.LOAD_PLUGIN,
-                        agentPluginPart.readBytes().toList(),
-                        if (plugins[pluginId]?.windowsPart != null || plugins[pluginId]?.linuxPar != null)
-                            NativePlugin(
-                                plugins[pluginId]?.windowsPart?.readBytes()?.toList() ?: emptyList(),
-                                plugins[pluginId]?.linuxPar?.readBytes()?.toList() ?: emptyList()
-                            ) else null,
-                        pb.copy().apply { this.enabled = pb.enabled && enabled }
-                    )
-
-                session.send(Frame.Binary(false, Cbor.dump(PluginMessage.serializer(), pluginMessage)))
+    suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
+        agentSession(agentInfo.id)?.apply {
+            while (agentInfo.status != AgentStatus.READY) {
+                delay(300)
             }
-
             agentInfo.status = AgentStatus.BUSY
             update()
             singleUpdate(agentInfo.id)
-            //fixme raw hack for pluginLoading.
-            delay(10000)
+            agentInfo.plugins.forEach { pb ->
+                val data = plugins[pb.id]?.agentPluginPart!!.readBytes()
+                pb.md5Hash = DigestUtils.md5Hex(data)
+                sendBinary("/plugins/load", pb, data).await()
+            }
+            agentInfo.status = AgentStatus.READY
+            update()
+            singleUpdate(agentInfo.id)
         }
-
-
-        session.send(
-            Frame.Text(
-                Message.serializer() stringify Message(
-                    MessageType.MESSAGE,
-                    DrillEvent.SYNC_FINISHED.name
-                )
-            )
-        )
-
     }
-
 }
