@@ -1,7 +1,7 @@
 package com.epam.drill.kodein
 
 import com.epam.drill.cache.CacheService
-import com.epam.drill.cache.impl.HazelcastCacheService
+import com.epam.drill.cache.impl.JvmCacheService
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.agent.AgentEndpoints
 import com.epam.drill.endpoints.agent.AgentHandler
@@ -27,7 +27,7 @@ import org.kodein.di.generic.singleton
 val storage: Kodein.Builder.(Application) -> Unit = { app ->
     bind<DataSourceRegistry>() with eagerSingleton { DataSourceRegistry() }
     bind<AgentStorage>() with singleton { ObservableMapStorage<String, AgentEntry, MutableSet<AgentWsSession>>() }
-    bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+    bind<CacheService>() with eagerSingleton { JvmCacheService() }
     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
     bind<MutableSet<DrillWsSession>>() with eagerSingleton { HashSet<DrillWsSession>() }
 }

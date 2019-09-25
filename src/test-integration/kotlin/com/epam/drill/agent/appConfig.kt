@@ -1,7 +1,7 @@
 package com.epam.drill.agent
 
 import com.epam.drill.cache.CacheService
-import com.epam.drill.cache.impl.HazelcastCacheService
+import com.epam.drill.cache.impl.*
 import com.epam.drill.endpoints.DrillWsSession
 import com.epam.drill.endpoints.agent.AgentHandler
 import com.epam.drill.jwt.config.JwtConfig
@@ -41,7 +41,7 @@ val testApp: Application.(String) -> Unit = { sslPort ->
         withKModule {
             kodeinModule("test") {
                 bind<AgentStorage>() with eagerSingleton { AgentStorage() }
-                bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+                bind<CacheService>() with eagerSingleton { JvmCacheService() }
                 bind<MutableSet<DrillWsSession>>() with eagerSingleton { mutableSetOf<DrillWsSession>() }
                 bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                 bind<AgentHandler>() with eagerSingleton { AgentHandler(kodein) }

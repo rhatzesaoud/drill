@@ -3,7 +3,7 @@
 package com.epam.drill.websockets
 
 import com.epam.drill.cache.CacheService
-import com.epam.drill.cache.impl.HazelcastCacheService
+import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.jwt.config.JwtConfig
@@ -55,7 +55,7 @@ internal class DrillServerWsTest {
             withKModule {
                 kodeinModule("test") {
                     bind<AgentStorage>() with eagerSingleton { AgentStorage() }
-                    bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+                    bind<CacheService>() with eagerSingleton { JvmCacheService() }
                     bind<MutableSet<DrillWsSession>>() with eagerSingleton { pluginStorage }
                     bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }

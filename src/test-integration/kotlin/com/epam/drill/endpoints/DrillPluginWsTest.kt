@@ -3,7 +3,7 @@
 package com.epam.drill.endpoints
 
 import com.epam.drill.cache.CacheService
-import com.epam.drill.cache.impl.HazelcastCacheService
+import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.plugin.DrillPluginWs
 import com.epam.drill.endpoints.plugin.SubscribeInfo
@@ -43,7 +43,7 @@ class PluginWsTest {
                     bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                     bind<DrillPluginWs>() with eagerSingleton { DrillPluginWs(kodein) }
                     bind<WsTopic>() with singleton { WsTopic() }
-                    bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+                    bind<CacheService>() with eagerSingleton { JvmCacheService() }
                     bind<AgentStorage>() with eagerSingleton { AgentStorage() }
                     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
                 }
