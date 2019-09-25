@@ -12,7 +12,7 @@ import kotlinx.cinterop.*
 open class GenericNativePlugin(
     val pluginApiClass: jclass,
     val userPlugin: jobject,
-    pluginConfig: PluginBean
+    pluginConfig: PluginMetadata
 ) : PluginRepresenter() {
     private val pluginLogger = DLogger("GenericNativePlugin")
 

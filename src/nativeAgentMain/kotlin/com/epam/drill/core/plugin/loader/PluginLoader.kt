@@ -13,7 +13,7 @@ import kotlin.collections.set
 @SharedImmutable
 val plLogger = DLogger("plLogger")
 
-fun loadPlugin(pluginFilePath: String, pluginConfig: PluginBean) {
+fun loadPlugin(pluginFilePath: String, pluginConfig: PluginMetadata) {
     AttachNativeThreadToJvm()
     AddToSystemClassLoaderSearch(pluginFilePath)
     plLogger.warn { "System classLoader extends by '$pluginFilePath' path" }
