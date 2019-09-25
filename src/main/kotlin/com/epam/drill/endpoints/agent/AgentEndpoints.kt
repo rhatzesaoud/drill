@@ -48,7 +48,7 @@ class AgentEndpoints(override val kodein: Kodein) : KodeinAware {
                             id = agentId,
                             name = regInfo.name,
                             group = regInfo.group,
-                            status = AgentStatus.READY,
+                            status = AgentStatus.ONLINE,
                             description = regInfo.description,
                             buildVersion = bv,
                             buildAlias = alias,

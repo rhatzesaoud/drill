@@ -51,8 +51,8 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                 post<Routes.Api.Agent.AgentToggleStandby> { (agentId) ->
                     agentManager[agentId]?.let { agentInfo ->
                         agentInfo.status = when (agentInfo.status) {
-                            AgentStatus.DISABLED -> AgentStatus.READY
-                            AgentStatus.READY -> AgentStatus.DISABLED
+                            AgentStatus.OFFLINE -> AgentStatus.ONLINE
+                            AgentStatus.ONLINE -> AgentStatus.OFFLINE
                             else -> {
                                 return@let
                             }

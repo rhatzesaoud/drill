@@ -36,7 +36,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         val agentInfoDb = AgentInfoDb.findById(agentId)
         if (agentInfoDb != null) {
             when (agentInfoDb.status) {
-                AgentStatus.READY -> agentInfoDb.apply {
+                AgentStatus.ONLINE -> agentInfoDb.apply {
                     val existingVersion = buildVersions.find { it.buildVersion == pBuildVersion }
                     val buildVersion = existingVersion ?: AgentBuildVersion.new {
                         buildVersion = pBuildVersion
@@ -49,7 +49,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                 AgentStatus.NOT_REGISTERED -> {
                     //TODO: add some processing for unregistered agents
                 }
-                AgentStatus.DISABLED -> {
+                AgentStatus.OFFLINE -> {
                     //TODO: add some processing for disabled agents
                 }
                 else -> Unit
@@ -180,7 +180,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
         agentSession(agentInfo.id)?.apply {
-            while (agentInfo.status != AgentStatus.READY) {
+            while (agentInfo.status != AgentStatus.ONLINE) {
                 delay(300)
             }
             agentInfo.status = AgentStatus.BUSY
@@ -191,7 +191,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                 pb.md5Hash = DigestUtils.md5Hex(data)
                 sendBinary("/plugins/load", pb, data).await()
             }
-            agentInfo.status = AgentStatus.READY
+            agentInfo.status = AgentStatus.ONLINE
             update()
             singleUpdate(agentInfo.id)
         }

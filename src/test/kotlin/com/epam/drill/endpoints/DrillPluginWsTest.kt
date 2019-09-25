@@ -43,7 +43,7 @@ class DrillPluginWsTest {
         val agentInfo = AgentInfo(
             id = agentId,
             name = "test",
-            status = AgentStatus.READY,
+            status = AgentStatus.ONLINE,
             ipAddress = "1.7.2.23",
             groupName = "test",
             description = "test",
