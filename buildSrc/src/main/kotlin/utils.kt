@@ -1,6 +1,9 @@
 import com.google.gson.*
 import com.palantir.gradle.gitversion.*
 import groovy.lang.*
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.jvm.tasks.*
@@ -11,22 +14,19 @@ val Project.versionDetails: VersionDetails
         return versionDetails()
     }
 
-const val DEFAULT_VERSION = "0.3.0-SNAPSHOT"
+private fun Project.calculateProjectVersion() = object {
+    val tagVersionRegex = Regex("refs/tags/v(\\d+)\\.(\\d+)\\.(\\d+)")
 
-private fun VersionDetails.toProjectVersion() = object {
-    val versionRegex = Regex("v(\\d+)\\.(\\d+)\\.(\\d+)")
+    override fun toString(): String {
+        val git = Git.wrap(FileRepository(this@calculateProjectVersion.rootDir.resolve(".git")))
+        val lastTag = git.tagList().call().last { tagVersionRegex.matches(it.name) }
+        val (_, major, minor, patch) = tagVersionRegex.matchEntire(lastTag.name)!!.groupValues
+        val commitDistance = git.log()
+            .addRange(lastTag.objectId, git.repository.findRef(Constants.HEAD).objectId).call().count()
 
-    override fun toString(): String = when (val matched = versionRegex.matchEntire(lastTag)) {
-        is MatchResult -> {
-            val (_, major, minor, patch) = matched.groupValues
-            when (commitDistance) {
-                0 -> "$major.$minor.$patch"
-                else -> "$major.${minor.toInt().inc()}.$patch-SNAPSHOT"
-            }
-        }
-        else -> when {
-            gitHash.startsWith(lastTag) -> DEFAULT_VERSION
-            else -> Project.DEFAULT_VERSION
+        return when (commitDistance) {
+            0 -> "$major.$minor.$patch"
+            else -> "$major.${minor.toInt().inc()}.$patch-SNAPSHOT"
         }
     }
 }
@@ -41,7 +41,7 @@ data class VersionInfo(
 fun Project.setupVersion() {
     apply<GitVersionPlugin>()
 
-    version = versionDetails.toProjectVersion()
+    version = calculateProjectVersion()
 
     tasks {
         val generateVersionJson by registering {

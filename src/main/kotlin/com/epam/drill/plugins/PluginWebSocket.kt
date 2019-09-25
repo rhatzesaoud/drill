@@ -15,7 +15,7 @@ data class PluginWebSocket(
     var relation: String?
 )
 
-fun PluginBean.toPluginWebSocket() = PluginWebSocket(
+fun PluginMetadata.toPluginWebSocket() = PluginWebSocket(
     id = id,
     name = name,
     description = description,
@@ -26,9 +26,9 @@ fun PluginBean.toPluginWebSocket() = PluginWebSocket(
     relation = null
 )
 
-fun MutableSet<PluginBean>.toPluginsWebSocket() = this.map { it.toPluginWebSocket() }.toMutableSet()
+fun MutableSet<PluginMetadata>.toPluginsWebSocket() = this.map { it.toPluginWebSocket() }.toMutableSet()
 
-fun Collection<PluginBean>.toAllPluginsWebSocket(agents: Set<AgentInfo>?) = this.map { pb ->
+fun Collection<PluginMetadata>.toAllPluginsWebSocket(agents: Set<AgentInfo>?) = this.map { pb ->
     return@map pb.toPluginWebSocket().apply {
         config = null
         status = null

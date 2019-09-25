@@ -13,7 +13,7 @@ class Plugins(private val plugins: MutableMap<String, Plugin> = HashMap()) : Map
 data class Plugin(
     val pluginClass: Class<AdminPluginPart<*>>,
     val agentPartFiles: AgentPartFiles,
-    val pluginBean: PluginBean
+    val pluginBean: PluginMetadata
 )
 
 data class AgentPartFiles(
@@ -31,5 +31,5 @@ val Plugin.linuxPar: File?
 
 fun Plugins.getAllPluginBeans() = values.map { it.pluginBean }
 
-infix fun PluginBean.partOf(set: List<String>?) =
+infix fun PluginMetadata.partOf(set: List<String>?) =
     if (set == null) false else this.id in set
