@@ -67,7 +67,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     suspend fun sendToAllSubscribed(destination: String) {
         app.run {
             wsTopic {
-                val message = resolve(destination, sessionStorage)
+                val message = resolve(destination)
                 sessionStorage.sendTo(
                     WsMessage(
                         WsMessageType.MESSAGE,

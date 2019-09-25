@@ -1,93 +1,102 @@
-package com.epam.drill.endpoints
+@file:Suppress("FunctionName")
 
-import com.epam.drill.*
-import com.epam.drill.cache.*
-import com.epam.drill.cache.impl.*
+package com.epam.drill.websockets
+
+import com.epam.drill.cache.CacheService
+import com.epam.drill.cache.impl.HazelcastCacheService
 import com.epam.drill.common.*
-import com.epam.drill.endpoints.agent.*
-import com.epam.drill.jwt.config.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.locations.*
-import io.ktor.server.testing.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import org.junit.*
+import com.epam.drill.endpoints.*
+import com.epam.drill.jwt.config.JwtConfig
+import com.epam.drill.kodein.AppBuilder
+import com.epam.drill.kodein.kodeinApplication
+import com.epam.drill.kodein.wsHandler
+import com.epam.drill.storage.AgentStorage
+import com.epam.drill.userSource
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.jwt.jwt
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.locations.Location
+import io.ktor.locations.Locations
+import io.ktor.locations.locations
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
+import io.ktor.websocket.WebSockets
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import org.kodein.di.*
-import org.kodein.di.generic.*
-import kotlin.test.*
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.generic.bind
+import org.kodein.di.generic.eagerSingleton
+import org.kodein.di.generic.instance
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 internal class DrillServerWsTest {
-
-    companion object {
-        val engine = TestApplicationEngine(createTestEnvironment())
-        val pluginStorage = HashSet<DrillWsSession>()
-        @BeforeClass
-        @JvmStatic
-        fun initTestEngine() {
-            engine.start(wait = false)
-            installation = {
-                install(WebSockets)
-                install(Locations)
-            }
-            val wsHandlers = Kodein.Module(name = "wsHandlers") {
-                bind<DrillServerWs>() with eagerSingleton {
-                    DrillServerWs(
-                        kodein
-                    )
+    private val testApp: Application.() -> Unit = {
+        install(Locations)
+        install(WebSockets)
+        install(Authentication) {
+            jwt {
+                realm = "Drill4J app"
+                verifier(JwtConfig.verifier)
+                validate {
+                    it.payload.getClaim("id").asInt()?.let(userSource::findUserById)
                 }
             }
-            kodeinConfig = {
-                import(wsHandlers, allowOverride = true)
-                bind<WsTopic>() with singleton { WsTopic(kodein) }
-                bind<MutableSet<DrillWsSession>>() with eagerSingleton { pluginStorage }
-                bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
-                bind<ServerStubTopics>() with eagerSingleton { ServerStubTopics(kodein) }
-            }
-            engine.application.module()
         }
+        kodeinApplication(AppBuilder {
+            withKModule { kodeinModule("wsHandler", wsHandler) }
+            withKModule {
+                kodeinModule("test") {
+                    bind<AgentStorage>() with eagerSingleton { AgentStorage() }
+                    bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+                    bind<MutableSet<DrillWsSession>>() with eagerSingleton { pluginStorage }
+                    bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
+                    bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
+                    bind<ServerStubTopics>() with eagerSingleton { ServerStubTopics(kodein) }
+                }
+
+            }
+        })
     }
 
-    private lateinit var token: String
-
-    @BeforeTest
-    fun tokenGen() {
-        val username = "guest"
-        val password = ""
-        val credentials = UserPasswordCredential(username, password)
-        val user = userSource.findUserByCredentials(credentials)
-        token = JwtConfig.makeToken(user)
-    }
+    private val pluginStorage = HashSet<DrillWsSession>()
 
     @Test
     fun testConversation() {
-        with(engine) {
-            pluginStorage.clear()
+        withTestApplication(testApp) {
+            val token = requestToken()
             handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { incoming, outgoing ->
-                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic", ""))
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, locations.href(PainRoutes.MyTopic()), ""))
+                val actual = incoming.receive()
+                assertNotNull(actual)
+                assertEquals(1, pluginStorage.size)
+                outgoing.send(UiMessage(WsMessageType.UNSUBSCRIBE, locations.href(PainRoutes.MyTopic()), ""))
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, locations.href(PainRoutes.MyTopic()), ""))
                 assertNotNull(incoming.receive())
                 assertEquals(1, pluginStorage.size)
-                outgoing.send(message(WsMessageType.UNSUBSCRIBE, "/mytopic", ""))
-                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic", ""))
-                assertNotNull(incoming.receive())
-                assertEquals(1, pluginStorage.size)
-                outgoing.send(message(WsMessageType.SUBSCRIBE, "/mytopic2", ""))
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, locations.href(PainRoutes.MyTopic2()), ""))
                 assertNotNull(incoming.receive())
                 assertEquals(2, pluginStorage.size)
                 assertEquals(2, pluginStorage.map { it.url }.toSet().size)
             }
         }
-
     }
+
 
     @Test
     fun `topic resolvation goes correctly`() {
-
-        with(engine) {
+        withTestApplication(testApp) {
+            val token = handleRequest(HttpMethod.Post, "/api/login").run { response.headers[HttpHeaders.Authorization] }
+            assertNotNull(token, "token can't be empty")
             handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { incoming, outgoing ->
-                outgoing.send(message(WsMessageType.SUBSCRIBE, "/blabla/pathOfPain", ""))
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, "/blabla/pathOfPain", ""))
                 val tmp = incoming.receive()
                 assertNotNull(tmp)
                 val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
@@ -96,12 +105,14 @@ internal class DrillServerWsTest {
                 assertEquals("blabla", parsed.name)
             }
         }
+
     }
 
     @Test
     fun `get UNAUTHORIZED event if token is invalid`() {
-        with(engine) {
-            handleWebSocketConversation("/ws/drill-admin-socket?token=notvalid") { incoming, _ ->
+        withTestApplication(testApp) {
+            val invalidToken = requestToken() + "1"
+            handleWebSocketConversation("/ws/drill-admin-socket?token=${invalidToken}") { incoming, _ ->
                 val tmp = incoming.receive()
                 assertTrue { tmp is Frame.Text }
                 val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
@@ -112,8 +123,12 @@ internal class DrillServerWsTest {
 
 }
 
-fun message(type: WsMessageType, destination: String, message: String) =
+fun UiMessage(type: WsMessageType, destination: String, message: String) =
     (WsMessage.serializer() stringify WsMessage(type, destination, message)).textFrame()
+
+
+fun AgentMessage(type: MessageType, destination: String, message: String) =
+    (Message.serializer() stringify Message(type, destination, message)).textFrame()
 
 
 class ServerStubTopics(override val kodein: Kodein) : KodeinAware {
@@ -122,7 +137,7 @@ class ServerStubTopics(override val kodein: Kodein) : KodeinAware {
     init {
         runBlocking {
             wsTopic {
-                topic<PainRoutes.SomeData> { payload, _ ->
+                topic<PainRoutes.SomeData> { payload ->
                     if (payload.data == "string") {
                         "the data is: ${payload.data}"
                     } else {
@@ -132,10 +147,10 @@ class ServerStubTopics(override val kodein: Kodein) : KodeinAware {
                         )
                     }
                 }
-                topic<PainRoutes.MyTopic> { _, _ ->
+                topic<PainRoutes.MyTopic> {
                     "Topic1 response"
                 }
-                topic<PainRoutes.MyTopic2> { _, _ ->
+                topic<PainRoutes.MyTopic2> {
                     "Topic2 response"
                 }
             }
@@ -149,8 +164,8 @@ object PainRoutes {
     data class SomeData(val data: String)
 
     @Location("/mytopic")
-    data class MyTopic(val data: String = "")
+    class MyTopic
 
     @Location("/mytopic2")
-    data class MyTopic2(val data: String = "")
+    class MyTopic2
 }

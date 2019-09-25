@@ -1,95 +1,76 @@
-@file:Suppress("UNUSED_PARAMETER")
+@file:Suppress("UNUSED_PARAMETER", "FunctionName")
 
 package com.epam.drill.endpoints
 
-import com.epam.drill.*
-import com.epam.drill.cache.*
-import com.epam.drill.cache.impl.*
+import com.epam.drill.cache.CacheService
+import com.epam.drill.cache.impl.HazelcastCacheService
 import com.epam.drill.common.*
-import com.epam.drill.endpoints.agent.AgentWsSession
-import com.epam.drill.endpoints.plugin.*
-import com.epam.drill.jwt.config.*
-import com.epam.drill.storage.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.locations.*
-import io.ktor.server.testing.*
-import io.ktor.util.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.junit.*
+import com.epam.drill.endpoints.plugin.DrillPluginWs
+import com.epam.drill.endpoints.plugin.SubscribeInfo
+import com.epam.drill.kodein.AppBuilder
+import com.epam.drill.kodein.kodeinApplication
+import com.epam.drill.storage.AgentStorage
+import com.epam.drill.websockets.LoginHandler
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.http.cio.websocket.CloseReason
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readReason
+import io.ktor.http.cio.websocket.readText
+import io.ktor.locations.Locations
+import io.ktor.server.testing.withTestApplication
+import io.ktor.websocket.WebSockets
 import org.junit.Test
-import org.kodein.di.generic.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import org.kodein.di.Kodein
+import org.kodein.di.generic.bind
+import org.kodein.di.generic.eagerSingleton
+import org.kodein.di.generic.instance
+import org.kodein.di.generic.singleton
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
-@KtorExperimentalAPI
-@KtorExperimentalLocationsAPI
-@ExperimentalCoroutinesApi
-class DrillPluginWsTest {
+class PluginWsTest {
 
-    @ExperimentalCoroutinesApi
-    @KtorExperimentalLocationsAPI
-    @KtorExperimentalAPI
-    companion object {
-        var engine: TestApplicationEngine? = null
-        var wsPluginService: DrillPluginWs? = null
-        val agentStorage = AgentStorage()
-        val agentId = "testAgent"
-        val buildVersion = "1.0.0"
-        val agentInfo = AgentInfo(
-            id = agentId,
-            name = "test",
-            status = AgentStatus.ONLINE,
-            ipAddress = "1.7.2.23",
-            groupName = "test",
-            description = "test",
-            buildVersion = buildVersion,
-            buildAlias = "testAlias"
-        )
-
-        @BeforeClass
-        @JvmStatic
-        fun initTestEngine() {
-            engine = TestApplicationEngine(createTestEnvironment())
-            engine!!.start(wait = false)
-            installation = {
-                install(WebSockets)
-                install(Locations)
-            }
-            kodeinConfig = {
-                bind<DrillPluginWs>() with eagerSingleton {
-                    wsPluginService = DrillPluginWs(kodein)
-                    wsPluginService!!
+    lateinit var kodeinApplication: Kodein
+    private val testApp: Application.() -> Unit = {
+        install(Locations)
+        install(WebSockets)
+        kodeinApplication = kodeinApplication(AppBuilder {
+            withKModule {
+                kodeinModule("test") {
+                    bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
+                    bind<DrillPluginWs>() with eagerSingleton { DrillPluginWs(kodein) }
+                    bind<WsTopic>() with singleton { WsTopic() }
+                    bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
+                    bind<AgentStorage>() with eagerSingleton { AgentStorage() }
+                    bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
                 }
-                bind<WsTopic>() with singleton { WsTopic(kodein) }
-                bind<CacheService>() with eagerSingleton { HazelcastCacheService() }
-                bind<AgentStorage>() with eagerSingleton { agentStorage }
-                bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
+
             }
-            engine!!.application.module()
-        }
+        })
     }
 
-    lateinit var token: String
-
-    @BeforeTest
-    fun tokenGen() {
-        val username = "guest"
-        val password = ""
-        val credentials = UserPasswordCredential(username, password)
-        val user = userSource.findUserByCredentials(credentials)
-        token = JwtConfig.makeToken(user)
-    }
+    val agentId = "testAgent"
+    val buildVersion = "1.0.0"
+    val agentInfo = AgentInfo(
+        id = agentId,
+        name = "test",
+        status = AgentStatus.ONLINE,
+        ipAddress = "1.7.2.23",
+        groupName = "test",
+        description = "test",
+        buildVersion = buildVersion,
+        buildAlias = "testAlias"
+    )
 
     @Test
     fun `should return CloseFrame if we subscribe without SubscribeInfo`() {
-        with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
-                outgoing.send(message(WsMessageType.SUBSCRIBE, "/pluginTopic1", ""))
+        withTestApplication(testApp) {
+            val token = requestToken()
+            handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, "/pluginTopic1", ""))
                 val receive = incoming.receive()
                 assertTrue(receive is Frame.Close)
                 assertEquals(CloseReason.Codes.UNEXPECTED_CONDITION.code, receive.readReason()?.code)
@@ -100,11 +81,12 @@ class DrillPluginWsTest {
 
     @Test
     fun `should communicate with pluginWs and return the empty MESSAGE`() {
-        with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
+        withTestApplication(testApp) {
+            val token = requestToken()
+            handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 val destination = "/pluginTopic2"
                 outgoing.send(
-                    message(
+                    UiMessage(
                         WsMessageType.SUBSCRIBE,
                         destination,
                         SubscribeInfo.serializer() stringify SubscribeInfo(agentId, buildVersion)
@@ -122,13 +104,15 @@ class DrillPluginWsTest {
 
     @Test
     fun `should return data from storage which was sent before via send()`() {
-        with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
+        withTestApplication(testApp) {
+            val token = requestToken()
+            handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
                 val destination = "/pluginTopic1"
                 val messageForTest = "testMessage"
-                wsPluginService?.send(agentInfo, destination, messageForTest)
+                val wsPluginService: DrillPluginWs by kodeinApplication.instance()
+                wsPluginService.send(agentInfo, destination, messageForTest)
                 outgoing.send(
-                    message(
+                    UiMessage(
                         WsMessageType.SUBSCRIBE,
                         destination,
                         SubscribeInfo.serializer() stringify SubscribeInfo(agentId, buildVersion)
@@ -142,74 +126,10 @@ class DrillPluginWsTest {
                 assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertEquals(messageForTest, fromJson.message)
 
-                outgoing.send(message(WsMessageType.SUBSCRIBE, destination, ""))
+                outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, destination, ""))
             }
         }
     }
 
-    @Test
-    fun `should return data from storage for current buildVersion if BV is null`() {
-        with(engine) {
-            this?.handleWebSocketConversation("/ws/drill-plugin-socket?token=${token}") { incoming, outgoing ->
-                val destination = "/pluginTopic1"
-                val messageForTest = "testMessage"
-                agentStorage.put(
-                    agentInfo.id, AgentEntry(
-                        agentInfo,
-                        AgentWsSession(DefWebSocketSessionStub())
-                    )
-                )
-                wsPluginService?.send(agentInfo, destination, messageForTest)
-                outgoing.send(
-                    message(
-                        WsMessageType.SUBSCRIBE,
-                        destination,
-                        SubscribeInfo.serializer() stringify SubscribeInfo(agentId, null)
-                    )
-                )
-
-                val receive = incoming.receive() as? Frame.Text ?: fail()
-                val readText = receive.readText()
-                val fromJson = WsMessage.serializer() parse readText
-                assertEquals(destination, fromJson.destination)
-                assertEquals(WsMessageType.MESSAGE, fromJson.type)
-                assertEquals(messageForTest, fromJson.message)
-
-                outgoing.send(message(WsMessageType.SUBSCRIBE, destination, ""))
-            }
-        }
-    }
 }
 
-class DefWebSocketSessionStub : DefaultWebSocketServerSession{
-    override val call: ApplicationCall
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-
-    override val closeReason: Deferred<CloseReason?>
-        get() = TODO("not implemented")
-    override val coroutineContext: CoroutineContext
-        get() = TODO("not implemented")
-    override val incoming: ReceiveChannel<Frame>
-        get() = TODO("not implemented")
-    override var masking: Boolean
-        get() = TODO("not implemented")
-        set(value) {}
-    override var maxFrameSize: Long
-        get() = TODO("not implemented")
-        set(value) {}
-    override val outgoing: SendChannel<Frame>
-        get() = TODO("not implemented")
-    override var pingIntervalMillis: Long
-        get() = TODO("not implemented")
-        set(value) {}
-    override var timeoutMillis: Long
-        get() = TODO("not implemented")
-        set(value) {}
-
-    @KtorExperimentalAPI
-    override suspend fun close(cause: Throwable?) {
-    }
-
-    override suspend fun flush() {}
-    override fun terminate() {}
-}

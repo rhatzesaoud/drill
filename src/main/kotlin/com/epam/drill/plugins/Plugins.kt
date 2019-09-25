@@ -7,7 +7,7 @@ import java.util.*
 
 
 class Plugins(private val plugins: MutableMap<String, Plugin> = HashMap()) : Map<String, Plugin> by plugins {
-    internal operator fun set(k: String, v: Plugin) = plugins.put(k, v)
+    operator fun set(k: String, v: Plugin) = plugins.put(k, v)
 }
 
 data class Plugin(
@@ -18,8 +18,8 @@ data class Plugin(
 
 data class AgentPartFiles(
     val jar: File,
-    val windowsPart: File?,
-    val linuxPart: File?
+    val windowsPart: File? = null,
+    val linuxPart: File? = null
 )
 
 val Plugin.agentPluginPart: File
