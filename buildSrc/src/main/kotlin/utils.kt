@@ -28,7 +28,6 @@ private fun Project.calculateProjectVersion() = object {
             0 -> "$major.$minor.$patch"
             else -> "$major.${minor.toInt().inc()}.$patch-SNAPSHOT"
         }
-
     }
 }
 
