@@ -15,7 +15,7 @@ data class AgentInfo(
     val adminUrl: String = "",
     var ipAddress: String = "",
     val buildVersions: MutableSet<AgentBuildVersionJson> = mutableSetOf(),
-    val plugins: MutableSet<PluginBean> = mutableSetOf()
+    val plugins: MutableSet<PluginMetadata> = mutableSetOf()
 
 ) {
     override fun equals(other: Any?): Boolean {
