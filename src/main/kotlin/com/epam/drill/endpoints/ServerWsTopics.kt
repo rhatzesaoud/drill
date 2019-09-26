@@ -66,11 +66,11 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 }
 
                 topic<WsRoutes.GetAgent> { payload ->
-                    agentManager[payload.agentId]?.toAgentInfoWebSocket()
+                    agentManager.getOrNull(payload.agentId)?.toAgentInfoWebSocket()
                 }
 
                 topic<WsRoutes.GetAgentBuilds> { payload ->
-                    agentManager[payload.agentId]?.buildVersions
+                    agentManager.getOrNull(payload.agentId)?.buildVersions
                 }
 
                 topic<WsRoutes.GetAllPlugins> {
@@ -91,7 +91,7 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 }
 
                 topic<WsRoutes.GetPluginConfig> { payload->
-                    agentManager[payload.agent]?.plugins?.find { it.id == payload.plugin }?.config
+                    agentManager.getOrNull(payload.agent)?.plugins?.find { it.id == payload.plugin }?.config
                 }
             }
 

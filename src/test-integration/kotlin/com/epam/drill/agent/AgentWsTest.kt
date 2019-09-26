@@ -1,41 +1,62 @@
 package com.epam.drill.agent
 
-import com.epam.drill.agentmanager.AgentInfoWebSocketSingle
+import com.epam.drill.agentmanager.*
 import com.epam.drill.common.*
-import com.epam.drill.common.ws.ServiceConfig
+import com.epam.drill.common.ws.*
 import com.epam.drill.endpoints.AgentManager
 import com.epam.drill.endpoints.requestToken
-import com.epam.drill.kodein.AppBuilder
-import com.epam.drill.kodein.KodeinConf
-import com.epam.drill.plugin.api.end.AdminPluginPart
-import com.epam.drill.plugins.AgentPartFiles
-import com.epam.drill.plugins.Plugin
-import com.epam.drill.plugins.Plugins
+import com.epam.drill.kodein.*
+import com.epam.drill.plugin.api.end.*
+import com.epam.drill.plugins.*
+import com.epam.drill.router.*
 import com.epam.drill.websockets.AgentMessage
 import com.epam.drill.websockets.UiMessage
-import io.kotlintest.fail
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.shouldBe
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readBytes
-import io.ktor.http.cio.websocket.readText
-import io.ktor.server.testing.TestApplicationRequest
-import io.ktor.server.testing.withTestApplication
-import io.mockk.coEvery
-import io.mockk.spyk
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
-import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.dumps
-import org.apache.commons.codec.digest.DigestUtils
-import org.junit.Test
-import org.kodein.di.Kodein
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.eagerSingleton
-import java.io.File
+import io.kotlintest.*
+import io.kotlintest.matchers.types.*
+import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.locations.*
+import io.ktor.server.testing.*
+import io.mockk.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.serialization.*
+import kotlinx.serialization.cbor.*
+import org.apache.commons.codec.digest.*
+import org.junit.*
+import org.kodein.di.*
+import org.kodein.di.generic.*
+import java.io.*
 
 
 private val agentId = "testAgent"
+val pluginMetadata = PluginMetadata(
+    id = "test",
+    name = "test",
+    description = "test",
+    type = "test",
+    family = Family.INSTRUMENTATION,
+    enabled = true,
+    config = "config",
+    md5Hash = "",
+    isNative = false
+
+)
+
+val ai = AgentInfo(
+    id = agentId,
+    name = agentId,
+    status = AgentStatus.ONLINE,
+    groupName = "",
+    description = "",
+    buildVersion = "",
+    buildAlias = "",
+    adminUrl = "",
+    plugins = mutableSetOf(
+        pluginMetadata
+    ),
+    buildVersions = mutableSetOf()
+)
 
 class AgentWsTest {
     @Test
@@ -51,7 +72,6 @@ class AgentWsTest {
             val token = requestToken()
             //create the 'drill-admin-socket' websocket connection
             handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { uiIncoming, ut ->
-                println()
                 //send subscribe event  to get agent status
                 ut.send(UiMessage(WsMessageType.SUBSCRIBE, "/get-agent/$agentId", ""))
                 //first time agent is always READY (mockk). Emulate case when agent is already connected to admin
@@ -72,13 +92,39 @@ class AgentWsTest {
                         incoming.receive().shouldBeInstanceOf<Frame.Binary> { pluginFile ->
                             DigestUtils.md5Hex(pluginFile.readBytes()) shouldBe pluginMetadata.md5Hash
                             readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.BUSY
+                            doHttpCall(this@withTestApplication, this, token, HttpStatusCode.BadRequest)
                             outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/plugins/load", ""))
                             readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.ONLINE
+                            doHttpCall(this@withTestApplication, this, token, HttpStatusCode.OK)
                         }
                     }
                 }.join()
             }
         }
+    }
+
+    private fun doHttpCall(
+        testApplicationEngine: TestApplicationEngine,
+        testApplicationCall: TestApplicationCall,
+        token: String,
+        badRequest: HttpStatusCode
+    ) {
+        val (status, content) =
+            testApplicationEngine.handleRequest(
+                HttpMethod.Post,
+                testApplicationCall.locations.href(Routes.Api.UpdateAgentConfig(agentId))
+            ) {
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+                setBody(
+                    AgentInfoWebSocketSingle.serializer() stringify ai.toAgentInfoWebSocket().copy(
+                        name = "modified"
+                    )
+                )
+            }.run {
+                response.status() to response.content
+            }
+
+        status shouldBe badRequest
     }
 
     suspend fun readAgentMessage(incoming: ReceiveChannel<Frame>): Message {
@@ -95,37 +141,13 @@ class AgentWsTest {
 
 
 private fun configuration(builder: Kodein.Builder, kodeinConf: KodeinConf) {
-    val pluginMetadata = PluginMetadata(
-        id = "test",
-        name = "test",
-        description = "test",
-        type = "test",
-        family = Family.INSTRUMENTATION,
-        enabled = true,
-        config = "config",
-        md5Hash = "",
-        isNative = false
 
-    )
     builder.bind<AgentManager>() with builder.eagerSingleton {
-        val ai = AgentInfo(
-            id = agentId,
-            name = agentId,
-            status = AgentStatus.ONLINE,
-            groupName = "",
-            description = "",
-            buildVersion = "",
-            buildAlias = "",
-            adminUrl = "",
-            plugins = mutableSetOf(
-                pluginMetadata
-            ),
-            buildVersions = mutableSetOf()
-        )
         spyk(AgentManager(kodein)).apply {
             val thiz = this
             coEvery { agentConfiguration(agentId, "0.1.0") } returns ai
-            coEvery { thiz[ai.id] } returns ai
+            coEvery { thiz.getOrNull(ai.id) } returns ai
+            coEvery { updateAgent(agentId, any()) } returns Unit
         }
     }
     builder.bind<Plugins>() with builder.eagerSingleton {

@@ -78,11 +78,11 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     }
 
     suspend fun updateAgent(agentId: String, au: AgentInfoWebSocketSingle) {
-        get(agentId)?.apply {
+        getOrNull(agentId)?.apply {
             name = au.name
             groupName = au.group
             description = au.description
-            buildAlias = au.buildVersions.firstOrNull { it.id == this.buildVersion }?.name!!
+            buildAlias = au.buildVersions.firstOrNull { it.id == this.buildVersion }?.name?:""
             buildVersions.replaceAll(au.buildVersions)
             status = au.status
             update(this@AgentManager)
@@ -90,7 +90,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     }
 
-    suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean = get(agentId)?.let { agentInfo ->
+    suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean = getOrNull(agentId)?.let { agentInfo ->
         agentInfo.plugins.find { it.id == pc.id }?.let { plugin ->
             if (plugin.config != pc.data) {
                 plugin.config = pc.data
@@ -131,16 +131,17 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     fun agentSession(k: String) = agentStorage.targetMap[k]?.agentSession
 
-    fun buildVersionByAgentId(agentId: String) = get(agentId)?.buildVersion ?: ""
+    fun buildVersionByAgentId(agentId: String) = getOrNull(agentId)?.buildVersion ?: ""
 
     operator fun contains(k: String) = k in agentStorage.targetMap
 
-    operator fun get(agentId: String) = agentStorage.targetMap[agentId]?.agent
+    fun getOrNull(agentId: String) = agentStorage.targetMap[agentId]?.agent
+    operator fun get(agentId: String) = agentStorage.targetMap[agentId]?.agent!!
     fun full(agentId: String) = agentStorage.targetMap[agentId]
 
     fun getAllAgents() = agentStorage.targetMap.values
 
-    fun getAllInstalledPluginBeanIds(agentId: String) = get(agentId)?.plugins?.map { it.id }
+    fun getAllInstalledPluginBeanIds(agentId: String) = getOrNull(agentId)?.plugins?.map { it.id }
 
     suspend fun addPluginFromLib(agentId: String, pluginId: String) = asyncTransaction {
         val agentInfoDb = AgentInfoDb.findById(agentId)
@@ -171,7 +172,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         }
     }?.let { pluginBeanDb ->
         val agentInfo = get(agentId)
-        agentInfo!!.plugins.add(pluginBeanDb.toPluginBean())
+        agentInfo.plugins.add(pluginBeanDb.toPluginBean())
         agentStorage.update()
         agentStorage.singleUpdate(agentId)
         updateAgentConfig(agentInfo)

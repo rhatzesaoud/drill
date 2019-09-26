@@ -14,7 +14,7 @@ import com.epam.drill.endpoints.system.InfoController
 import com.epam.drill.plugin.api.end.Sender
 import com.epam.drill.plugins.PluginLoaderService
 import com.epam.drill.plugins.Plugins
-import com.epam.drill.service.DataSourceRegistry
+import com.epam.drill.service.*
 import com.epam.drill.storage.AgentStorage
 import com.epam.drill.storage.ObservableMapStorage
 import com.epam.drill.websockets.LoginHandler
@@ -35,7 +35,7 @@ val storage: Kodein.Builder.(Application) -> Unit = { app ->
 val wsHandler: Kodein.Builder.(Application) -> Unit = { app ->
     bind<AgentEndpoints>() with eagerSingleton { AgentEndpoints(kodein) }
     bind<Sender>() with eagerSingleton { DrillPluginWs(kodein) }
-    bind<DrillServerWs>() with eagerSingleton {DrillServerWs(kodein) }
+    bind<DrillServerWs>() with eagerSingleton { DrillServerWs(kodein) }
     bind<ServerWsTopics>() with eagerSingleton { ServerWsTopics(kodein) }
     bind<WsTopic>() with singleton { WsTopic() }
 }
@@ -45,7 +45,8 @@ val handlers: Kodein.Builder.(Application) -> Unit = { app ->
     bind<PluginDispatcher>() with eagerSingleton { PluginDispatcher(kodein) }
     bind<InfoController>() with eagerSingleton { InfoController(kodein) }
     bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
-    bind<AgentHandler>() with eagerSingleton {AgentHandler(kodein)}
+    bind<AgentHandler>() with eagerSingleton { AgentHandler(kodein) }
+    bind<RequestValidator>() with eagerSingleton { RequestValidator(kodein) }
 }
 
 val pluginServices: Kodein.Builder.(Application) -> Unit = { app ->

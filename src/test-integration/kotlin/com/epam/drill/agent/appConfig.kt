@@ -8,6 +8,7 @@ import com.epam.drill.jwt.config.JwtConfig
 import com.epam.drill.kodein.AppBuilder
 import com.epam.drill.kodein.kodeinApplication
 import com.epam.drill.kodein.wsHandler
+import com.epam.drill.service.*
 import com.epam.drill.storage.AgentStorage
 import com.epam.drill.userSource
 import com.epam.drill.websockets.LoginHandler
@@ -45,6 +46,7 @@ val testApp: Application.(String) -> Unit = { sslPort ->
                 bind<MutableSet<DrillWsSession>>() with eagerSingleton { mutableSetOf<DrillWsSession>() }
                 bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                 bind<AgentHandler>() with eagerSingleton { AgentHandler(kodein) }
+                bind<RequestValidator>() with eagerSingleton { RequestValidator(kodein) }
 
             }
 

@@ -23,7 +23,7 @@ open class AgentInfoWebSocket(
 
 @Suppress("unused")
 @Serializable
-class AgentInfoWebSocketSingle(
+data class AgentInfoWebSocketSingle(
     val id: String,
     val name: String,
     val description: String,
