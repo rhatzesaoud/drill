@@ -1,26 +1,22 @@
 package com.epam.drill.agent
 
-import com.epam.drill.cache.CacheService
+import com.epam.drill.*
+import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
-import com.epam.drill.endpoints.DrillWsSession
-import com.epam.drill.endpoints.agent.AgentHandler
-import com.epam.drill.jwt.config.JwtConfig
-import com.epam.drill.kodein.AppBuilder
-import com.epam.drill.kodein.kodeinApplication
-import com.epam.drill.kodein.wsHandler
+import com.epam.drill.endpoints.*
+import com.epam.drill.endpoints.agent.*
+import com.epam.drill.jwt.config.*
+import com.epam.drill.kodein.*
 import com.epam.drill.service.*
-import com.epam.drill.storage.AgentStorage
-import com.epam.drill.userSource
-import com.epam.drill.websockets.LoginHandler
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.jwt.jwt
-import io.ktor.config.MapApplicationConfig
-import io.ktor.locations.Locations
-import io.ktor.websocket.WebSockets
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.eagerSingleton
+import com.epam.drill.storage.*
+import com.epam.drill.websockets.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.config.*
+import io.ktor.locations.*
+import io.ktor.websocket.*
+import org.kodein.di.generic.*
 
 val testApp: Application.(String) -> Unit = { sslPort ->
     (environment.config as MapApplicationConfig).apply {

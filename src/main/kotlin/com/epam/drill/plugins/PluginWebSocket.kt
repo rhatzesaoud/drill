@@ -1,7 +1,7 @@
 package com.epam.drill.plugins
 
 import com.epam.drill.common.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 @Serializable
 data class PluginWebSocket(

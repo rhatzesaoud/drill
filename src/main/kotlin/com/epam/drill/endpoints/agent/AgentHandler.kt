@@ -4,9 +4,9 @@ package com.epam.drill.endpoints.agent
 
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
-import com.epam.drill.system.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.plugin.*
+import com.epam.drill.system.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
@@ -17,8 +17,8 @@ import kotlinx.serialization.cbor.*
 import mu.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
-import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.jvm.reflect
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.*
 
 private val logger = KotlinLogging.logger {}
 

@@ -1,7 +1,6 @@
 package com.epam.drill.websockets
 
 import com.epam.drill.*
-import com.epam.drill.core.*
 import com.epam.drill.jwt.config.*
 import com.epam.drill.router.*
 import io.ktor.application.*
@@ -12,7 +11,7 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import org.kodein.di.*
-import org.kodein.di.generic.instance
+import org.kodein.di.generic.*
 
 class LoginHandler(override val kodein: Kodein) : KodeinAware {
     val app: Application by instance()

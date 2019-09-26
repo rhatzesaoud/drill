@@ -1,14 +1,11 @@
 package com.epam.drill.endpoints.system
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.http.ContentType
-import io.ktor.response.respondBytes
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.generic.instance
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import org.kodein.di.*
+import org.kodein.di.generic.*
 
 class InfoController(override val kodein: Kodein) : KodeinAware {
     private val app: Application by instance()

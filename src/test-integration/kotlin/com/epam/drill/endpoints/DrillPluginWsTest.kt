@@ -2,33 +2,22 @@
 
 package com.epam.drill.endpoints
 
-import com.epam.drill.cache.CacheService
+import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
-import com.epam.drill.endpoints.plugin.DrillPluginWs
-import com.epam.drill.endpoints.plugin.SubscribeInfo
-import com.epam.drill.kodein.AppBuilder
-import com.epam.drill.kodein.kodeinApplication
-import com.epam.drill.storage.AgentStorage
-import com.epam.drill.websockets.LoginHandler
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.http.cio.websocket.CloseReason
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readReason
-import io.ktor.http.cio.websocket.readText
-import io.ktor.locations.Locations
-import io.ktor.server.testing.withTestApplication
-import io.ktor.websocket.WebSockets
+import com.epam.drill.endpoints.plugin.*
+import com.epam.drill.kodein.*
+import com.epam.drill.storage.*
+import com.epam.drill.websockets.*
+import io.ktor.application.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.locations.*
+import io.ktor.server.testing.*
+import io.ktor.websocket.*
 import org.junit.Test
-import org.kodein.di.Kodein
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.eagerSingleton
-import org.kodein.di.generic.instance
-import org.kodein.di.generic.singleton
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import org.kodein.di.*
+import org.kodein.di.generic.*
+import kotlin.test.*
 
 
 class PluginWsTest {

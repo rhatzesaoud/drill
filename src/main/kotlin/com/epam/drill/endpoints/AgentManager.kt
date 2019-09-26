@@ -1,25 +1,19 @@
 package com.epam.drill.endpoints
 
-import com.epam.drill.agentmanager.AgentInfoWebSocketSingle
+import com.epam.drill.agentmanager.*
 import com.epam.drill.common.*
-import com.epam.drill.dataclasses.AgentBuildVersion
-import com.epam.drill.endpoints.agent.AgentWsSession
-import com.epam.drill.endpoints.agent.sendBinary
-import com.epam.drill.plugins.Plugins
-import com.epam.drill.plugins.agentPluginPart
-import com.epam.drill.service.asyncTransaction
-import com.epam.drill.storage.AgentStorage
-import io.ktor.application.Application
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import mu.KotlinLogging
-import org.apache.commons.codec.digest.DigestUtils
-import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.generic.instance
+import com.epam.drill.dataclasses.*
+import com.epam.drill.endpoints.agent.*
+import com.epam.drill.plugins.*
+import com.epam.drill.service.*
+import com.epam.drill.storage.*
+import io.ktor.application.*
+import kotlinx.coroutines.*
+import mu.*
+import org.apache.commons.codec.digest.*
+import org.jetbrains.exposed.sql.*
+import org.kodein.di.*
+import org.kodein.di.generic.*
 
 private val logger = KotlinLogging.logger {}
 

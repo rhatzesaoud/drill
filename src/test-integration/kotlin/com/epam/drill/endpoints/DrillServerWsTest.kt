@@ -2,40 +2,27 @@
 
 package com.epam.drill.websockets
 
-import com.epam.drill.cache.CacheService
+import com.epam.drill.*
+import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
-import com.epam.drill.jwt.config.JwtConfig
-import com.epam.drill.kodein.AppBuilder
-import com.epam.drill.kodein.kodeinApplication
-import com.epam.drill.kodein.wsHandler
-import com.epam.drill.storage.AgentStorage
-import com.epam.drill.userSource
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.jwt.jwt
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readText
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import io.ktor.locations.locations
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
-import io.ktor.websocket.WebSockets
-import kotlinx.coroutines.runBlocking
+import com.epam.drill.jwt.config.*
+import com.epam.drill.kodein.*
+import com.epam.drill.storage.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.locations.*
+import io.ktor.server.testing.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import org.junit.Test
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.eagerSingleton
-import org.kodein.di.generic.instance
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.kodein.di.*
+import org.kodein.di.generic.*
+import kotlin.test.*
 
 internal class DrillServerWsTest {
     private val testApp: Application.() -> Unit = {

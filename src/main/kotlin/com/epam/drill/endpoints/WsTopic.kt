@@ -1,22 +1,15 @@
 package com.epam.drill.endpoints
 
-import com.epam.drill.common.stringify
-import io.ktor.application.Application
-import io.ktor.application.feature
-import io.ktor.http.parametersOf
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.internal.ArrayListSerializer
-import kotlinx.serialization.internal.HashMapSerializer
-import kotlinx.serialization.internal.HashSetSerializer
-import kotlinx.serialization.internal.ReferenceArraySerializer
-import kotlinx.serialization.serializer
-import java.util.concurrent.ConcurrentHashMap
+import com.epam.drill.common.*
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.locations.*
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.*
+import java.util.concurrent.*
 import kotlin.collections.set
-import kotlin.reflect.KClass
-import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.*
+import kotlin.reflect.full.*
 
 class WsTopic {
     val pathToCallBackMapping: MutableMap<String, Pair<KClass<*>, CallbackWrapper<Any, Any>>> = ConcurrentHashMap()

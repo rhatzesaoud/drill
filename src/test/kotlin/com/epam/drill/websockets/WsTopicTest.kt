@@ -1,7 +1,7 @@
 package com.epam.drill.websockets
 
 import com.epam.drill.common.*
-import com.epam.drill.endpoints.serialize
+import com.epam.drill.endpoints.*
 import org.junit.Test
 import kotlin.test.*
 
