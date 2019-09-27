@@ -16,8 +16,8 @@ import org.kodein.di.generic.*
 
 class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     private val app: Application by instance()
-    private val wsTopic: WsTopic by instance()
-    private val sessionStorage: MutableSet<DrillWsSession> by instance()
+    private val topicResolver: TopicResolver by instance()
+    private val sessionStorage: SessionStorage by instance()
 
     init {
 
@@ -60,20 +60,6 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
     ) {
         sessionStorage += (wsSession)
         println("${event.destination} is subscribed")
-        sendToAllSubscribed(event.destination)
+        topicResolver.sendToAllSubscribed(event.destination)
     }
-
-    @UseExperimental(ImplicitReflectionSerializer::class)
-    suspend fun sendToAllSubscribed(destination: String) {
-        app.run {
-            wsTopic {
-                val message = resolve(destination)
-                sessionStorage.sendTo(
-                    destination,
-                    message
-                )
-            }
-        }
-    }
-
 }

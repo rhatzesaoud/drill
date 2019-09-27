@@ -26,7 +26,7 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
     private val plugins: Plugins by instance()
     private val agentManager: AgentManager by instance()
     private val wsService: Sender by kodein.instance()
-    private val serverWs: DrillServerWs by instance()
+    private val topicResolver: TopicResolver by instance()
 
     suspend fun processPluginData(pluginData: String, agentInfo: AgentInfo) {
         val message = MessageWrapper.serializer().parse(pluginData)
@@ -65,7 +65,7 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                     agentManager.agentSession(agentId)
                         ?.send(PluginConfig.serializer().agentWsMessage("/plugins/updatePluginConfig", pc))
                     if (agentManager.updateAgentPluginConfig(agentId, pc)) {
-                        serverWs.sendToAllSubscribed("/$agentId/$pluginId/config")
+                        topicResolver.sendToAllSubscribed("/$agentId/$pluginId/config")
                         call.respond(HttpStatusCode.OK, "")
                     } else call.respond(HttpStatusCode.NotFound, "")
                 }

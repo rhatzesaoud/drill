@@ -20,4 +20,7 @@ object WsRoutes {
 
     @Location("/{agent}/{plugin}/config")
     data class GetPluginConfig(val agent: String, val plugin: String)
+
+    @Location("/notifications")
+    class GetNotifications()
 }

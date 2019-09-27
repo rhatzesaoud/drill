@@ -47,6 +47,12 @@ object Routes {
         @Location("/agent/{agentId}")
         data class UpdateAgentConfig(val agentId: String)
 
+        @Location("/notifications/read")
+        class ReadNotification()
+
+        @Location("/notifications/delete")
+        class DeleteNotification()
+
         @Location("/login")
         class Login
     }

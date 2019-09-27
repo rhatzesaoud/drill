@@ -1,6 +1,7 @@
 package com.epam.drill.endpoints
 
 import com.epam.drill.common.*
+import com.epam.drill.endpoints.agent.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.locations.*
@@ -46,9 +47,9 @@ suspend fun MutableSet<DrillWsSession>.sendTo(
     }
 }
 
-fun MutableSet<DrillWsSession>.exists(destination: String) = this.firstOrNull { it.url == destination } != null
+fun SessionStorage.exists(destination: String) = this.firstOrNull { it.url == destination } != null
 
-fun MutableSet<DrillWsSession>.removeTopic(destination: String) {
+fun SessionStorage.removeTopic(destination: String) {
     if (this.removeIf { it.url == destination })
         println("$destination unsubscribe")
 }

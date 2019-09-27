@@ -6,10 +6,15 @@ import com.epam.drill.*
 import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.common.*
+import com.epam.drill.dataclasses.*
 import com.epam.drill.endpoints.*
+import com.epam.drill.endpoints.agent.*
+import com.epam.drill.endpoints.openapi.*
 import com.epam.drill.jwt.config.*
 import com.epam.drill.kodein.*
+import com.epam.drill.router.*
 import com.epam.drill.storage.*
+import com.epam.drill.util.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -19,11 +24,17 @@ import io.ktor.locations.*
 import io.ktor.server.testing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import org.junit.Test
 import org.kodein.di.*
 import org.kodein.di.generic.*
+import java.util.*
+import kotlin.collections.HashSet
 import kotlin.test.*
+
+val notificationsManager = NotificationsManager()
 
 internal class DrillServerWsTest {
     private val testApp: Application.() -> Unit = {
@@ -44,10 +55,12 @@ internal class DrillServerWsTest {
                 kodeinModule("test") {
                     bind<AgentStorage>() with eagerSingleton { AgentStorage() }
                     bind<CacheService>() with eagerSingleton { JvmCacheService() }
-                    bind<MutableSet<DrillWsSession>>() with eagerSingleton { pluginStorage }
+                    bind<SessionStorage>() with eagerSingleton { pluginStorage }
+                    bind<NotificationsManager>() with eagerSingleton { notificationsManager }
                     bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
                     bind<ServerStubTopics>() with eagerSingleton { ServerStubTopics(kodein) }
+                    bind<DrillAdminEndpoints>() with eagerSingleton { DrillAdminEndpoints(kodein) }
                 }
 
             }
@@ -77,6 +90,64 @@ internal class DrillServerWsTest {
         }
     }
 
+    @Test
+    fun `notifications are displayed and processed correctly`() {
+        withTestApplication(testApp) {
+            val token = requestToken()
+            generateThreeNotifications("testId", "testName")
+            handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { incoming, outgoing ->
+                var currentNotifications = getCurrentNotifications(incoming, outgoing)
+                assertNotificationsCounters(currentNotifications, 3, 3)
+                val firstNotificationId = currentNotifications.first().id
+                val jsonId = NotificationId.serializer() stringify NotificationId(firstNotificationId)
+                handleHttpPostRequest(locations.href(Routes.Api.ReadNotification()), jsonId, token)
+                currentNotifications = getCurrentNotifications(incoming, outgoing)
+                assertEquals(
+                    NotificationStatus.READ,
+                    currentNotifications.find { it.id == firstNotificationId }!!.status
+                )
+                assertNotificationsCounters(currentNotifications, 3, 2)
+                handleHttpPostRequest(locations.href(Routes.Api.DeleteNotification()), jsonId, token)
+                getCurrentNotifications(incoming, outgoing)
+                currentNotifications = getCurrentNotifications(incoming, outgoing)
+                assertNull(currentNotifications.find { it.id == firstNotificationId })
+                assertNotificationsCounters(currentNotifications, 2, 2)
+                handleHttpPostRequest(locations.href(Routes.Api.ReadNotification()), "", token)
+                getCurrentNotifications(incoming, outgoing)
+                currentNotifications = getCurrentNotifications(incoming, outgoing)
+                assertNotificationsCounters(currentNotifications, 2, 0)
+                handleHttpPostRequest(locations.href(Routes.Api.DeleteNotification()), "", token)
+                getCurrentNotifications(incoming, outgoing)
+                currentNotifications = getCurrentNotifications(incoming, outgoing)
+                assertNotificationsCounters(currentNotifications, 0, 0)
+            }
+        }
+    }
+
+    private fun TestApplicationEngine.handleHttpPostRequest(location: String, body: String, token: String) {
+        handleRequest(HttpMethod.Post, location) {
+            addHeader(HttpHeaders.Authorization, "Bearer $token")
+            setBody(body)
+        }
+    }
+
+    private fun assertNotificationsCounters(notifications: List<Notification>, total: Int, unread: Int) {
+        val notificationsCount = notifications.count()
+        val unreadNotificationsCount = notifications.count { it.status == NotificationStatus.UNREAD }
+        assertEquals(total, notificationsCount)
+        assertEquals(unread, unreadNotificationsCount)
+    }
+
+    private suspend fun TestApplicationCall.getCurrentNotifications(
+        incoming: ReceiveChannel<Frame>,
+        outgoing: SendChannel<Frame>
+    ): List<Notification> {
+        outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, locations.href(WsRoutes.GetNotifications()), ""))
+        val frame = incoming.receive()
+        val json = json.parseJson((frame as Frame.Text).readText()) as JsonObject
+        outgoing.send(UiMessage(WsMessageType.UNSUBSCRIBE, locations.href(WsRoutes.GetNotifications()), ""))
+        return Notification.serializer().list parse json[WsReceiveMessage::message.name].toString()
+    }
 
     @Test
     fun `topic resolvation goes correctly`() {
@@ -157,4 +228,16 @@ object PainRoutes {
 
     @Location("/mytopic2")
     class MyTopic2
+}
+
+fun generateThreeNotifications(agentId: String, agentName: String) {
+    for (i in 0..2) {
+        val buildVersion = UUID.randomUUID().toString()
+        notificationsManager.save(
+            agentId,
+            agentName,
+            NotificationType.BUILD,
+            notificationsManager.buildArrivedMessage(buildVersion)
+        )
+    }
 }

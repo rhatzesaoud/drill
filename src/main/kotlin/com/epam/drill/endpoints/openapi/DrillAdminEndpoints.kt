@@ -1,14 +1,18 @@
 package com.epam.drill.endpoints.openapi
 
 import com.epam.drill.common.*
+import com.epam.drill.dataclasses.*
 import com.epam.drill.endpoints.*
+import com.epam.drill.endpoints.agent.*
 import com.epam.drill.plugins.*
 import com.epam.drill.router.*
+import com.epam.drill.util.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.locations.post
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.routing
 import org.kodein.di.*
@@ -18,6 +22,8 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
     private val app: Application by instance()
     private val agentManager: AgentManager by instance()
     private val plugins: Plugins by kodein.instance()
+    private val topicResolver: TopicResolver by instance()
+    val notificationsManager: NotificationsManager by instance()
 
     init {
         app.routing {
@@ -113,6 +119,44 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                         agentEntry.instance.values.forEach { pluginInstance -> pluginInstance.dropData() }
                     }
                     call.respond(HttpStatusCode.OK, "reset drill admin app")
+                }
+            }
+
+            authenticate {
+                post<Routes.Api.ReadNotification> {
+                    val callString = call.receiveText()
+                    val (statusCode, response) = if (callString.isBlank()) {
+                        notificationsManager.readAll()
+                        HttpStatusCode.OK to "All notifications successfully read"
+                    } else {
+                        val (notificationId) = NotificationId.serializer() parse callString
+                        if (notificationsManager.read(notificationId)) {
+                            topicResolver.sendToAllSubscribed("/notifications")
+                            HttpStatusCode.OK to "Notification with id $notificationId successfully read"
+                        } else {
+                            HttpStatusCode.NotFound to "Notification with id $notificationId not found"
+                        }
+                    }
+                    call.respond(statusCode, response)
+                }
+            }
+
+            authenticate {
+                post<Routes.Api.DeleteNotification> {
+                    val callString = call.receiveText()
+                    val (statusCode, response) = if (callString.isBlank()) {
+                        notificationsManager.deleteAll()
+                        HttpStatusCode.OK to "All notifications successfully deleted"
+                    } else {
+                        val (notificationId) = NotificationId.serializer() parse callString
+                        if (notificationsManager.delete(notificationId)) {
+                            topicResolver.sendToAllSubscribed("/notifications")
+                            HttpStatusCode.OK to "Notification with id $notificationId successfully deleted"
+                        } else {
+                            HttpStatusCode.NotFound to "Notification with id $notificationId not found"
+                        }
+                    }
+                    call.respond(statusCode, response)
                 }
             }
         }

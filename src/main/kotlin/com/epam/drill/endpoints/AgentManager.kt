@@ -7,6 +7,7 @@ import com.epam.drill.endpoints.agent.*
 import com.epam.drill.plugins.*
 import com.epam.drill.service.*
 import com.epam.drill.storage.*
+import com.epam.drill.util.*
 import io.ktor.application.*
 import kotlinx.coroutines.*
 import mu.*
@@ -21,9 +22,11 @@ const val INITIAL_BUILD_ALIAS = "Initial build"
 
 class AgentManager(override val kodein: Kodein) : KodeinAware {
 
+    private val topicResolver: TopicResolver by instance()
     val app: Application by instance()
     val agentStorage: AgentStorage by instance()
     val plugins: Plugins by instance()
+    val notificationsManager: NotificationsManager by instance()
 
     suspend fun agentConfiguration(agentId: String, pBuildVersion: String) = asyncTransaction {
         addLogger(StdOutSqlLogger)
@@ -35,7 +38,16 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                     val buildVersion = existingVersion ?: AgentBuildVersion.new {
                         buildVersion = pBuildVersion
                         name = ""
-                    }.apply { buildVersions = SizedCollection(buildVersions.toSet() + this) }
+                    }.apply {
+                        buildVersions = SizedCollection(buildVersions.toSet() + this)
+                        notificationsManager.save(
+                            agentId,
+                            agentInfoDb.name,
+                            NotificationType.BUILD,
+                            notificationsManager.buildArrivedMessage(pBuildVersion)
+                        )
+                        topicResolver.sendToAllSubscribed("/notifications")
+                    }
 
                     this.buildVersion = pBuildVersion
                     this.buildAlias = buildVersion.name

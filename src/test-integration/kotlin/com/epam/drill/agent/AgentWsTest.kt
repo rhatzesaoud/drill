@@ -143,7 +143,6 @@ class AgentWsTest {
 
 
 private fun configuration(builder: Kodein.Builder, kodeinConf: KodeinConf) {
-
     builder.bind<AgentManager>() with builder.eagerSingleton {
         spyk(AgentManager(kodein)).apply {
             val thiz = this

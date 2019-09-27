@@ -39,7 +39,7 @@ val testApp: Application.(String) -> Unit = { sslPort ->
             kodeinModule("test") {
                 bind<AgentStorage>() with eagerSingleton { AgentStorage() }
                 bind<CacheService>() with eagerSingleton { JvmCacheService() }
-                bind<MutableSet<DrillWsSession>>() with eagerSingleton { mutableSetOf<DrillWsSession>() }
+                bind<SessionStorage>() with eagerSingleton { mutableSetOf<DrillWsSession>() }
                 bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                 bind<AgentHandler>() with eagerSingleton { AgentHandler(kodein) }
                 bind<RequestValidator>() with eagerSingleton { RequestValidator(kodein) }
