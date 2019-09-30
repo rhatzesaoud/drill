@@ -26,15 +26,8 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
             agentManager.agentStorage.onUpdate += update(mutableSetOf()) { storage ->
                 val destination = app.toLocation(WsRoutes.GetAllAgents())
                 sessionStorage.sendTo(
-
-                    WsMessage(
-                        WsMessageType.MESSAGE, destination,
-                        AgentInfoWebSocket.serializer().list stringify storage.values.map { it.agent }.sortedWith(
-                            compareBy(AgentInfo::id)
-                        ).toMutableSet().toAgentInfosWebSocket()
-                    )
-
-
+                    destination,
+                    storage.values.map { it.agent }.sortedWith(compareBy(AgentInfo::id)).toMutableSet().toAgentInfosWebSocket()
                 )
 
             }
@@ -42,19 +35,17 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 val destination = app.toLocation(WsRoutes.GetAgent(k))
                 if (sessionStorage.exists(destination)) {
                     sessionStorage.sendTo(
-                        WsMessage(
-                            WsMessageType.MESSAGE,
-                            destination,
-                            AgentInfoWebSocketSingle.serializer() stringify v.agent.toAgentInfoWebSocket()
-                        )
+                        destination,
+                        v.agent.toAgentInfoWebSocket()
                     )
+
                 }
             }
 
             agentManager.agentStorage.onRemove += remove(mutableSetOf()) { k ->
                 val destination = app.toLocation(WsRoutes.GetAgent(k))
                 if (sessionStorage.exists(destination))
-                    sessionStorage.sendTo(WsMessage(WsMessageType.DELETE, destination, ""))
+                    sessionStorage.sendTo(destination, "", WsMessageType.DELETE)
             }
 
             wsTopic {
@@ -90,8 +81,9 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                     }
                 }
 
-                topic<WsRoutes.GetPluginConfig> { payload->
-                    agentManager.getOrNull(payload.agent)?.plugins?.find { it.id == payload.plugin }?.config
+                topic<WsRoutes.GetPluginConfig> { payload ->
+                    agentManager.getOrNull(payload.agent)?.plugins?.find { it.id == payload.plugin }
+                    ?.config?.let { json.parseJson(it) } ?: ""
                 }
             }
 

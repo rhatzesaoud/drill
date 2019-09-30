@@ -22,7 +22,7 @@ fun Route.authWebSocket(
 private suspend fun DefaultWebSocketServerSession.socketAuthentication() {
     val token = call.parameters["token"]
     if (token == null) {
-        send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
+        send(Frame.Text(WsSendMessage.serializer() stringify WsSendMessage(WsMessageType.UNAUTHORIZED)))
         close()
         return
     }
@@ -40,7 +40,7 @@ private suspend fun DefaultWebSocketServerSession.verifyToken(token: String) {
     try {
         JwtConfig.verifier.verify(token)
     } catch (ex: JWTVerificationException) {
-        send(Frame.Text(WsMessage.serializer() stringify WsMessage(WsMessageType.UNAUTHORIZED)))
+        send(Frame.Text(WsSendMessage.serializer() stringify WsSendMessage(WsMessageType.UNAUTHORIZED)))
         close()
     }
 }

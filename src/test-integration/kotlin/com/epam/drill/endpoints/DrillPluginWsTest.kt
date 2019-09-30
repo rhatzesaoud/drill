@@ -83,7 +83,7 @@ class PluginWsTest {
                 )
                 val receive = incoming.receive() as? Frame.Text ?: fail()
                 val readText = receive.readText()
-                val fromJson = WsMessage.serializer() parse readText
+                val fromJson = WsReceiveMessage.serializer() parse readText
                 assertEquals(destination, fromJson.destination)
                 assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertTrue { fromJson.message.isEmpty() }
@@ -110,7 +110,7 @@ class PluginWsTest {
 
                 val receive = incoming.receive() as? Frame.Text ?: fail()
                 val readText = receive.readText()
-                val fromJson = WsMessage.serializer() parse readText
+                val fromJson = WsReceiveMessage.serializer() parse readText
                 assertEquals(destination, fromJson.destination)
                 assertEquals(WsMessageType.MESSAGE, fromJson.type)
                 assertEquals(messageForTest, fromJson.message)

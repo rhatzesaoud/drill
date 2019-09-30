@@ -34,7 +34,7 @@ fun Collection<PluginMetadata>.toAllPluginsWebSocket(agents: Set<AgentInfo>?) = 
         status = null
         installedAgentsCount = calculateInstalledAgentsCount(id, agents)
     }
-}.toMutableSet()
+}.toMutableList()
 
 private fun calculateInstalledAgentsCount(id: String, agents: Set<AgentInfo>?): Int {
     return if (agents.isNullOrEmpty()) 0 else

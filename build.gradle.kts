@@ -14,10 +14,10 @@ plugins {
 setupVersion()
 
 repositories {
+    mavenLocal()
     mavenCentral()
     jcenter()
     maven(url = "https://dl.bintray.com/kodein-framework/Kodein-DI/")
-    mavenLocal()
     if ("$version".endsWith("-SNAPSHOT")) {
         maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
     }
@@ -44,7 +44,7 @@ application {
 
 val remotePlugins: Configuration by configurations.creating {}
 dependencies {
-    remotePlugins("com.epam.drill:coverage-plugin:0.3.0")
+    remotePlugins("com.epam.drill:coverage-plugin:0.4.0-SNAPSHOT")
 }
 val integrationTestImplementation by configurations.creating {
     extendsFrom(configurations["testCompile"])
@@ -72,7 +72,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed:0.13.7")
     implementation("org.kodein.di:kodein-di-generic-jvm:6.2.0")
     implementation("io.github.microutils:kotlin-logging:1.6.24")
-
+    implementation("org.slf4j:slf4j-simple:1.7.26")
+    implementation("ch.qos.logback:logback-classic:1.0.13")
 
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation(kotlin("test-junit"))

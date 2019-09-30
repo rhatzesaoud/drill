@@ -10,13 +10,35 @@ fun Application.toLocation(rout: Any): String {
     return this.locations.href(rout)
 }
 
-suspend fun MutableSet<DrillWsSession>.sendTo(message: WsMessage) {
+suspend fun MutableSet<DrillWsSession>.sendTo(
+    destination: String,
+    message: Any,
+    type: WsMessageType = WsMessageType.MESSAGE
+) {
     val iter = this.iterator()
     while (iter.hasNext()) {
         try {
             val it = iter.next()
-            if (it.url == message.destination) {
-                it.send(Frame.Text(WsMessage.serializer() stringify message))
+            if (it.url == destination) {
+                @Suppress("UNCHECKED_CAST") val frame =
+                    if (message is Collection<*>) {
+                    Frame.Text(
+                        WsSendMessageListData.serializer() stringify WsSendMessageListData(
+                            type,
+                            destination,
+                            (message as Collection<Any>).toMutableList()
+                        )
+                    )
+                } else {
+                    Frame.Text(
+                        WsSendMessage.serializer() stringify WsSendMessage(
+                            type,
+                            destination,
+                            message
+                        )
+                    )
+                }
+                it.send(frame)
             }
         } catch (ex: Exception) {
             iter.remove()

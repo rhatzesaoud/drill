@@ -30,12 +30,20 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
     private val sessionStorage: ConcurrentMap<String, MutableSet<SessionData>> = ConcurrentHashMap()
     private val agentManager: AgentManager by instance()
 
-    override suspend fun send(agentInfo: AgentInfo, destination: String, message: String) {
+    override suspend fun send(agentInfo: AgentInfo, destination: String, message: Any) {
         val id = "${agentInfo.id}:$destination:${agentInfo.buildVersion}"
-        if (message.isEmpty()) {
+        if (message.toString().isEmpty()) {
             eventStorage.remove(id)
         } else {
-            val messageForSend = WsMessage.serializer() stringify WsMessage(WsMessageType.MESSAGE, destination, message)
+            val messageForSend = if (message is List<*>) {
+                WsSendMessageListData.serializer() stringify WsSendMessageListData(
+                    WsMessageType.MESSAGE,
+                    destination,
+                    message as List<Any>
+                )
+            } else {
+                WsSendMessage.serializer() stringify WsSendMessage(WsMessageType.MESSAGE, destination, message)
+            }
             logger.debug { "send data to $id destination" }
             eventStorage[id] = messageForSend
 
@@ -58,12 +66,12 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
                 incoming.consumeEach { frame ->
                     when (frame) {
                         is Frame.Text -> {
-                            val event = WsMessage.serializer() parse frame.readText()
+                            val event = WsReceiveMessage.serializer() parse frame.readText()
                             when (event.type) {
                                 WsMessageType.SUBSCRIBE -> {
-                                    val subscribeInfo = SubscribeInfo.serializer() parse event.message
+                                    val subscribeInfo = SubscribeInfo.serializer() parse (event.message as String)
 
-                                    saveSession(event, subscribeInfo)
+                                    saveSession(event.destination, subscribeInfo)
                                     val buildVersion = subscribeInfo.buildVersion
 
                                     val message =
@@ -77,8 +85,8 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
 
                                     if (message.isNullOrEmpty()) {
                                         this.send(
-                                            (WsMessage.serializer() stringify
-                                                    WsMessage(
+                                            (WsSendMessage.serializer() stringify
+                                                    WsSendMessage(
                                                         WsMessageType.MESSAGE,
                                                         event.destination,
                                                         ""
@@ -104,8 +112,8 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
         }
     }
 
-    private fun DefaultWebSocketServerSession.saveSession(event: WsMessage, subscribeInfo: SubscribeInfo) {
-        val sessionSet = sessionStorage.getOrPut(event.destination) {
+    private fun DefaultWebSocketServerSession.saveSession(destination: String, subscribeInfo: SubscribeInfo) {
+        val sessionSet = sessionStorage.getOrPut(destination) {
             Collections.newSetFromMap(ConcurrentHashMap())
         }
         sessionSet.add(SessionData(this, subscribeInfo))

@@ -28,7 +28,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
                     incoming.consumeEach { frame ->
 
                         val json = (frame as Frame.Text).readText()
-                        val event = WsMessage.serializer() parse json
+                        val event = WsReceiveMessage.serializer() parse json
                         when (event.type) {
                             WsMessageType.SUBSCRIBE -> {
                                 val wsSession = DrillWsSession(event.destination, rawWsSession)
@@ -56,7 +56,7 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
 
     private suspend fun subscribe(
         wsSession: DrillWsSession,
-        event: WsMessage
+        event: WsReceiveMessage
     ) {
         sessionStorage += (wsSession)
         println("${event.destination} is subscribed")
@@ -69,11 +69,8 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
             wsTopic {
                 val message = resolve(destination)
                 sessionStorage.sendTo(
-                    WsMessage(
-                        WsMessageType.MESSAGE,
-                        destination,
-                        message
-                    )
+                    destination,
+                    message
                 )
             }
         }

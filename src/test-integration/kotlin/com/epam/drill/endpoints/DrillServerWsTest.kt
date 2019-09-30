@@ -19,6 +19,7 @@ import io.ktor.locations.*
 import io.ktor.server.testing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.*
 import org.junit.Test
 import org.kodein.di.*
 import org.kodein.di.generic.*
@@ -86,8 +87,9 @@ internal class DrillServerWsTest {
                 outgoing.send(UiMessage(WsMessageType.SUBSCRIBE, "/blabla/pathOfPain", ""))
                 val tmp = incoming.receive()
                 assertNotNull(tmp)
-                val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
-                val parsed = AgentBuildVersionJson.serializer() parse response.message
+                val parseJson = json.parseJson((tmp as Frame.Text).readText())
+                val parsed =
+                    AgentBuildVersionJson.serializer() parse (parseJson as JsonObject)[WsReceiveMessage::message.name].toString()
                 assertEquals("testId", parsed.id)
                 assertEquals("blabla", parsed.name)
             }
@@ -102,7 +104,7 @@ internal class DrillServerWsTest {
             handleWebSocketConversation("/ws/drill-admin-socket?token=${invalidToken}") { incoming, _ ->
                 val tmp = incoming.receive()
                 assertTrue { tmp is Frame.Text }
-                val response = WsMessage.serializer() parse (tmp as Frame.Text).readText()
+                val response = WsReceiveMessage.serializer() parse (tmp as Frame.Text).readText()
                 assertEquals(WsMessageType.UNAUTHORIZED, response.type)
             }
         }
@@ -111,7 +113,7 @@ internal class DrillServerWsTest {
 }
 
 fun UiMessage(type: WsMessageType, destination: String, message: String) =
-    (WsMessage.serializer() stringify WsMessage(type, destination, message)).textFrame()
+    (WsSendMessage.serializer() stringify WsSendMessage(type, destination, message)).textFrame()
 
 
 fun AgentMessage(type: MessageType, destination: String, message: String) =

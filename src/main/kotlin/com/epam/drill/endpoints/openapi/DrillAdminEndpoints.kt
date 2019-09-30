@@ -35,7 +35,7 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                     }
                     drillAgent.send(
                         Frame.Text(
-                            WsMessage.serializer() stringify WsMessage(
+                            WsSendMessage.serializer() stringify WsSendMessage(
                                 WsMessageType.MESSAGE,
                                 "/plugins/unload",
                                 pluginId
@@ -61,8 +61,8 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                         agentInfo.plugins.filter { it.enabled }.forEach {
                             agentSession?.send(
                                 Frame.Text(
-                                    WsMessage.serializer() stringify
-                                            WsMessage(WsMessageType.MESSAGE, "/plugins/togglePlugin", it.id)
+                                    WsSendMessage.serializer() stringify
+                                            WsSendMessage(WsMessageType.MESSAGE, "/plugins/togglePlugin", it.id)
                                 )
                             )
                         }

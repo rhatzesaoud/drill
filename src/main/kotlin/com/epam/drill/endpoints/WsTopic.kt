@@ -20,7 +20,7 @@ class WsTopic {
     }
 
 
-    fun Application.resolve(destination: String): String {
+    fun Application.resolve(destination: String): Any {
         if (pathToCallBackMapping.isEmpty()) return ""
         val urlTokens = destination.split("/")
 
@@ -50,7 +50,7 @@ class WsTopic {
         val param = feature(Locations).resolve<Any>(next.value.first, parameters)
 
         val result = next.value.second.resolve(param)
-        return serialize(result)
+        return result
     }
 }
 

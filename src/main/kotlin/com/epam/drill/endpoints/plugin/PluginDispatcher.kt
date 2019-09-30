@@ -147,8 +147,8 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                         else -> {
                             session.send(
                                 Frame.Text(
-                                    WsMessage.serializer() stringify
-                                            WsMessage(
+                                    WsSendMessage.serializer() stringify
+                                            WsSendMessage(
                                                 WsMessageType.MESSAGE,
                                                 "/plugins/togglePlugin", pluginId
                                             )

@@ -12,7 +12,7 @@ fun TestApplicationEngine.requestToken(): String {
 }
 
 fun UiMessage(type: WsMessageType, destination: String, message: String) =
-    (WsMessage.serializer() stringify WsMessage(type, destination, message)).textFrame()
+    (WsSendMessage.serializer() stringify WsSendMessage(type, destination, message)).textFrame()
 
 
 fun AgentMessage(type: MessageType, destination: String, message: String) =

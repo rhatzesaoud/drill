@@ -22,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
+import kotlinx.serialization.json.*
 import org.apache.commons.codec.digest.*
 import org.junit.*
 import org.kodein.di.*
@@ -133,8 +134,9 @@ class AgentWsTest {
     }
 
     private suspend fun readGetAgentTopicMessage(incoming: ReceiveChannel<Frame>): AgentInfoWebSocketSingle {
-        val wsMessage = WsMessage.serializer() parse (incoming.receive() as Frame.Text).readText()
-        val agentInfoWebSocketSingle = AgentInfoWebSocketSingle.serializer() parse wsMessage.message
+        val parseJson = json.parseJson((incoming.receive() as Frame.Text).readText())
+        val agentInfoWebSocketSingle =
+            AgentInfoWebSocketSingle.serializer() parse (parseJson as JsonObject)[WsReceiveMessage::message.name].toString()
         return agentInfoWebSocketSingle
     }
 }
