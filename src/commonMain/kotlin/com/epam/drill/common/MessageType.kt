@@ -1,5 +1,5 @@
 package com.epam.drill.common
 
 enum class MessageType {
-    PLUGIN_DATA, MESSAGE, MESSAGE_DELIVERED, DEBUG, INFO;
+    PLUGIN_DATA, MESSAGE, MESSAGE_DELIVERED, DEBUG, INFO, CLASSES_DATA;
 }
