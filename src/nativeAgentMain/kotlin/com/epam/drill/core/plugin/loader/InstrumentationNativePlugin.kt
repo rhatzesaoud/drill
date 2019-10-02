@@ -6,11 +6,12 @@ import com.epam.drill.plugin.api.processing.*
 import kotlinx.cinterop.*
 
 class InstrumentationNativePlugin(
+    pluginId: String,
     pluginApiClass: jclass,
     userPlugin: jobject,
     pluginConfig: PluginMetadata,
     private val qs: jmethodID? = GetMethodID(pluginApiClass, "instrument", "(Ljava/lang/String;[B)[B")
-) : GenericNativePlugin(pluginApiClass, userPlugin, pluginConfig),
+) : GenericNativePlugin(pluginId, pluginApiClass, userPlugin, pluginConfig),
     InstrumentationPlugin {
 
 

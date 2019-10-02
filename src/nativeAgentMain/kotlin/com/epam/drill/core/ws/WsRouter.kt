@@ -4,6 +4,7 @@ import com.epam.drill.*
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
+import com.epam.drill.core.agent.*
 import com.epam.drill.core.messanger.*
 import com.epam.drill.core.plugin.loader.*
 import com.epam.drill.logger.*
@@ -71,6 +72,17 @@ fun topicRegister() =
             topicLogger.info { "Agent synchronization is finished" }
         }
 
+        topic("/agent/load-classes-data").rawMessage {
+            val jsonClasses = getClassesByConfig()
+            sendMessage(Message.serializer() stringify Message(MessageType.CLASSES_DATA, "", jsonClasses))
+            topicLogger.info { "Agent's application classes processing by config triggered" }
+        }
+
+        topic("/agent/set-packages-prefixes").rawMessage { payload ->
+            setPackagesPrefixes(payload)
+            topicLogger.info { "Agent packages prefixes have been changed" }
+        }
+
         topic("/agent/config").withGenericTopic(ServiceConfig.serializer()) { sc ->
             topicLogger.info { "Agent got a system config: $sc" }
             exec { secureAdminAddress = adminAddress.copy(scheme = "https", defaultPort = sc.sslPort.toInt()) }
@@ -107,7 +119,19 @@ fun topicRegister() =
                 topicLogger.warn { "New settings for ${config.id} saved to file" }
             } else
                 topicLogger.warn { "Plugin ${config.id} not loaded to agent" }
+        }
 
+        topic("/plugins/resetPlugin").withGenericTopic(PluginId.serializer()) { (pluginId) ->
+            topicLogger.warn { "Resetting plugin with id $pluginId " }
+            val agentPluginPart = PluginManager[pluginId]
+            if (agentPluginPart != null) {
+                agentPluginPart.setEnabled(false)
+                agentPluginPart.off()
+                agentPluginPart.setEnabled(true)
+                agentPluginPart.on()
+                topicLogger.warn { "Plugin with id $pluginId has been reset" }
+            } else
+                topicLogger.warn { "Plugin with id $pluginId not loaded to agent" }
         }
 
         topic("/plugins/action").withGenericTopic(PluginAction.serializer()) { m ->

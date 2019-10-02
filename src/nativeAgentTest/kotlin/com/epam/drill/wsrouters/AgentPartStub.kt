@@ -1,10 +1,13 @@
 package com.epam.drill.wsrouters
 
+import com.epam.drill.*
 import com.epam.drill.common.*
+import com.epam.drill.plugin.api.*
 import com.epam.drill.plugin.api.processing.*
 
 @Suppress("unused")
-class AgentPartStub(var enabledx: Boolean, override val id: String) : PluginRepresenter() {
+class AgentPartStub(var enabledx: Boolean, override val id: String) :
+    PluginRepresenter(PluginPayload("", AgentPluginData)) {
     override suspend fun doRawAction(rawAction: String) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

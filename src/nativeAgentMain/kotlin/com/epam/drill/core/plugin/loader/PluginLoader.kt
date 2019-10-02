@@ -18,34 +18,40 @@ fun loadPlugin(pluginFilePath: String, pluginConfig: PluginMetadata) {
     AddToSystemClassLoaderSearch(pluginFilePath)
     plLogger.warn { "System classLoader extends by '$pluginFilePath' path" }
     try {
+        val pluginId = pluginConfig.id
         val initializerClass = FindClass("com/epam/drill/ws/ClassLoadingUtil")
         val selfMethodId: jfieldID? =
             GetStaticFieldID(initializerClass, "INSTANCE", "Lcom/epam/drill/ws/ClassLoadingUtil;")
         val initializer: jobject? = GetStaticObjectField(initializerClass, selfMethodId)
-        val calculateBuild: jmethodID? =
+        val retrieveApiClass: jmethodID? =
             GetMethodID(initializerClass, "retrieveApiClass", "(Ljava/lang/String;)Ljava/lang/Class;")
-        val pluginApiClass: jclass = CallObjectMethod(initializer, calculateBuild, NewStringUTF(pluginFilePath))!!
+        val pluginApiClass: jclass = CallObjectMethod(initializer, retrieveApiClass, NewStringUTF(pluginFilePath))!!
+
+        val getPayloadClass: jmethodID? =
+            GetMethodID(initializerClass, "getPluginPayload", "(Ljava/lang/String;)Lcom/epam/drill/plugin/api/PluginPayload;")
+        val payload: jobject = CallObjectMethod(initializer, getPayloadClass, NewStringUTF(pluginId))!!
 
         val userPlugin: jobject =
             NewGlobalRef(
                 NewObjectA(
                     pluginApiClass,
-                    GetMethodID(pluginApiClass, "<init>", "(Ljava/lang/String;)V"),
+                    GetMethodID(pluginApiClass, "<init>", "(Lcom/epam/drill/plugin/api/PluginPayload;)V"),
                     nativeHeap.allocArray(1.toLong()) {
-                        l = NewStringUTF(pluginConfig.id)
-                    })
+                        l = payload
+                    }
+                )
             )!!
 
         when (pluginConfig.family) {
             Family.INSTRUMENTATION -> {
-                val inst = InstrumentationNativePlugin(pluginApiClass, userPlugin, pluginConfig)
+                val inst = InstrumentationNativePlugin(pluginId, pluginApiClass, userPlugin, pluginConfig)
                 exec {
                     pstorage[pluginConfig.id] = inst
                 }
                 inst.retransform()
             }
             Family.GENERIC -> {
-                GenericNativePlugin(pluginApiClass, userPlugin, pluginConfig).apply {
+                GenericNativePlugin(pluginId, pluginApiClass, userPlugin, pluginConfig).apply {
                     exec {
                         pstorage[this@apply.id] = this@apply
                     }

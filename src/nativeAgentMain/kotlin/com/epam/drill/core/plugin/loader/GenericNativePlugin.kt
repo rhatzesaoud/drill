@@ -1,19 +1,22 @@
 package com.epam.drill.core.plugin.loader
 
+import com.epam.drill.*
 import com.epam.drill.common.*
 import com.epam.drill.core.plugin.*
 import com.epam.drill.jvmapi.*
 import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.logger.*
+import com.epam.drill.plugin.api.*
 import com.epam.drill.plugin.api.processing.*
 import kotlinx.cinterop.*
 
 @Suppress("LeakingThis")
 open class GenericNativePlugin(
+    pluginId: String,
     val pluginApiClass: jclass,
     val userPlugin: jobject,
     pluginConfig: PluginMetadata
-) : PluginRepresenter() {
+) : PluginRepresenter(PluginPayload(pluginId, AgentPluginData)) {
     private val pluginLogger = DLogger("GenericNativePlugin")
 
     init {
