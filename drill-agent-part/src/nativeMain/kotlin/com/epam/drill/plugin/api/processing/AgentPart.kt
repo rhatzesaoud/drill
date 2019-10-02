@@ -4,7 +4,7 @@ import com.epam.drill.common.*
 import com.epam.drill.plugin.api.*
 import kotlinx.serialization.*
 
-actual abstract class AgentPart<T, A> : DrillPlugin<A>, Switchable, Lifecycle {
+actual abstract class AgentPart<T, A> actual constructor(payload: PluginPayload) : DrillPlugin<A>, Switchable, Lifecycle {
 
     abstract suspend fun isEnabled(): Boolean
 

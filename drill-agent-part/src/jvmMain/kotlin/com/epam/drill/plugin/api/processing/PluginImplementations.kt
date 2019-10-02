@@ -1,9 +1,10 @@
 package com.epam.drill.plugin.api.processing
 
+import com.epam.drill.plugin.api.*
 import kotlinx.serialization.*
 
 
-abstract class DummyAgentPart(override val id: String) : AgentPart<Any, Any>() {
+abstract class DummyAgentPart(override val id: String, payload: PluginPayload) : AgentPart<Any, Any>(payload) {
 
     override fun initPlugin() {
         println("[JAVA SIDE] Plugin $id loaded")

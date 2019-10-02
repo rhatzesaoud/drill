@@ -4,7 +4,7 @@ import com.epam.drill.common.*
 import com.epam.drill.plugin.api.*
 import kotlinx.serialization.*
 
-expect abstract class AgentPart<T, A>() : DrillPlugin<A>, Switchable, Lifecycle {
+expect abstract class AgentPart<T, A>(payload: PluginPayload) : DrillPlugin<A>, Switchable, Lifecycle {
     var np: NativePart<T>?
     var enabled: Boolean
 

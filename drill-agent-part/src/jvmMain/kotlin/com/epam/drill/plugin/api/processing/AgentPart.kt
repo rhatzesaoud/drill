@@ -4,7 +4,7 @@ import com.epam.drill.plugin.api.*
 import kotlinx.coroutines.*
 
 
-actual abstract class AgentPart<T, A> : DrillPlugin<A>, Switchable, Lifecycle {
+actual abstract class AgentPart<T, A> actual constructor(payload: PluginPayload) : DrillPlugin<A>, Switchable, Lifecycle {
     private var rawConfig: String? = null
 
     val config: T get() = confSerializer parse rawConfig!!

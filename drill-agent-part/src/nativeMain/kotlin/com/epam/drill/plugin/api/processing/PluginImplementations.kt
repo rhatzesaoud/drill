@@ -3,7 +3,7 @@ package com.epam.drill.plugin.api.processing
 import com.epam.drill.plugin.api.*
 import kotlinx.serialization.*
 
-abstract class PluginRepresenter : AgentPart<Any, Any>() {
+abstract class PluginRepresenter(payload: PluginPayload) : AgentPart<Any, Any>(payload) {
     override val serDe: SerDe<Any>
         get() = TODO()
     @Suppress("UNUSED_PARAMETER")
