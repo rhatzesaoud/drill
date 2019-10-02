@@ -1,5 +1,5 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.tasks.*
 
 plugins {
     kotlin("jvm")
@@ -74,6 +74,9 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:1.6.24")
     implementation("org.slf4j:slf4j-simple:1.7.26")
     implementation("ch.qos.logback:logback-classic:1.0.13")
+    implementation("org.jacoco:org.jacoco.core:$jacocoVersion")
+    implementation("io.vavr:vavr-kotlin:$vavrVersion")
+    implementation("org.apache.bcel:bcel:$bcelVersion")
 
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation("org.eclipse.jgit:org.eclipse.jgit:5.5.0.201909110433-r")
@@ -190,5 +193,5 @@ fun DependencyHandler.ktor(module: String, version: String? = ktorVersion): Any 
 fun DependencyHandler.drill(module: String, version: Any? = project.version): Any =
     "com.epam.drill:$module${version?.let { ":$version" } ?: ""}"
 
-fun DependencyHandler.`integrationTestImplementation`(dependencyNotation: Any): Dependency? =
+fun DependencyHandler.integrationTestImplementation(dependencyNotation: Any): Dependency? =
     add("integrationTestImplementation", dependencyNotation)

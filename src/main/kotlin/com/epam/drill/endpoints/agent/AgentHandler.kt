@@ -27,7 +27,6 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
     private val agentManager: AgentManager by instance()
     private val pd: PluginDispatcher by kodein.instance()
 
-
     init {
         app.routing {
             agentWebsocket("/agent/attach") {
@@ -37,10 +36,13 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
 
                 agentManager.put(agentInfo, this)
                 agentManager.update()
+
                 logger.info { "Agent WS is connected. Client's address is ${call.request.local.remoteHost}" }
                 if (needSync)
                     agentManager.updateAgentConfig(agentInfo)
 
+                val packages = agentManager.packagesPrefixes(agentInfo.id)
+                agentManager.configurePackages(packages, agentInfo.id)
 
                 val sslPort = app.securePort()
 
@@ -79,6 +81,12 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                                     callback.invoke(message.data)
                                 state = false
                             }
+                        }
+                        MessageType.CLASSES_DATA -> {
+                            agentManager.adminData(agentInfo.id)
+                                .buildManager
+                                .fillClassesData(message.data, agentInfo.buildVersion)
+                            agentManager.resetAllPlugins(agentInfo.id)
                         }
                         else -> {
                             logger.warn { "How do you want to process '${message.type}' event?" }

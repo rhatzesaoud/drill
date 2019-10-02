@@ -1,5 +1,6 @@
 package com.epam.drill.endpoints
 
+import com.epam.drill.admindata.*
 import com.epam.drill.agentmanager.*
 import com.epam.drill.common.*
 import com.epam.drill.dataclasses.*
@@ -7,6 +8,7 @@ import com.epam.drill.endpoints.agent.*
 import com.epam.drill.plugins.*
 import com.epam.drill.service.*
 import com.epam.drill.storage.*
+import com.epam.drill.system.*
 import com.epam.drill.util.*
 import io.ktor.application.*
 import kotlinx.coroutines.*
@@ -23,10 +25,11 @@ const val INITIAL_BUILD_ALIAS = "Initial build"
 class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     private val topicResolver: TopicResolver by instance()
+    private val notificationsManager: NotificationsManager by instance()
     val app: Application by instance()
     val agentStorage: AgentStorage by instance()
     val plugins: Plugins by instance()
-    val notificationsManager: NotificationsManager by instance()
+    val adminData: AdminDataVault by instance()
 
     suspend fun agentConfiguration(agentId: String, pBuildVersion: String) = asyncTransaction {
         addLogger(StdOutSqlLogger)
@@ -142,7 +145,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     operator fun contains(k: String) = k in agentStorage.targetMap
 
     fun getOrNull(agentId: String) = agentStorage.targetMap[agentId]?.agent
-    operator fun get(agentId: String) = agentStorage.targetMap[agentId]?.agent!!
+    operator fun get(agentId: String) = agentStorage.targetMap[agentId]?.agent
     fun full(agentId: String) = agentStorage.targetMap[agentId]
 
     fun getAllAgents() = agentStorage.targetMap.values
@@ -178,7 +181,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         }
     }?.let { pluginBeanDb ->
         val agentInfo = get(agentId)
-        agentInfo.plugins.add(pluginBeanDb.toPluginBean())
+        agentInfo!!.plugins.add(pluginBeanDb.toPluginBean())
         agentStorage.update()
         agentStorage.singleUpdate(agentId)
         updateAgentConfig(agentInfo)
@@ -203,4 +206,38 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
             singleUpdate(agentInfo.id)
         }
     }
+
+    fun adminData(agentId: String) = adminData[agentId] ?: run {
+        val newAdminData = AdminPluginData(agentId, app.isDevMode())
+        adminData[agentId] = newAdminData
+        newAdminData
+    }
+
+    suspend fun resetAllPlugins(agentId: String) {
+        getAllInstalledPluginBeanIds(agentId)?.forEach { pluginId ->
+            agentSession(agentId)
+                ?.send(
+                    PluginId.serializer().agentWsMessage(
+                        "/plugins/resetPlugin",
+                        PluginId(pluginId)
+                    )
+                )
+        }
+    }
+
+    suspend fun configurePackages(prefixes: PackagesPrefixes, agentId: String) {
+        if (prefixes.packagesPrefixes.isNotEmpty()) {
+            agentSession(agentId)?.setPackagesPrefixes(prefixes)
+        }
+        agentSession(agentId)?.triggerClassesSending()
+    }
+
+    fun packagesPrefixes(agentId: String) = adminData(agentId).packagesPrefixes
+
 }
+
+suspend fun AgentWsSession.setPackagesPrefixes(data: PackagesPrefixes) =
+    sendToTopic("/agent/set-packages-prefixes", data)
+
+suspend fun AgentWsSession.triggerClassesSending() =
+    sendToTopic("/agent/load-classes-data", "")

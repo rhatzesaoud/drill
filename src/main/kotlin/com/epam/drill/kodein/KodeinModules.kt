@@ -1,5 +1,6 @@
 package com.epam.drill.kodein
 
+import com.epam.drill.admindata.*
 import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
 import com.epam.drill.endpoints.*
@@ -23,6 +24,7 @@ val storage: Kodein.Builder.(Application) -> Unit = { _ ->
     bind<CacheService>() with eagerSingleton { JvmCacheService() }
     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
     bind<SessionStorage>() with eagerSingleton { HashSet<DrillWsSession>() }
+    bind<AdminDataVault>() with eagerSingleton { AdminDataVault() }
     bind<NotificationsManager>() with eagerSingleton { NotificationsManager() }
 }
 

@@ -3,6 +3,7 @@ package com.epam.drill.endpoints.plugin
 import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.agent.*
+import com.epam.drill.plugin.api.*
 import com.epam.drill.plugin.api.end.*
 import com.epam.drill.plugin.api.message.*
 import com.epam.drill.plugins.*
@@ -17,9 +18,10 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlinx.serialization.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
+import kotlin.collections.any
+import kotlin.collections.set
 
 class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
     private val app: Application by instance()
@@ -49,8 +51,14 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
     ): AdminPluginPart<*> {
         return agentEntry?.instance!![pluginId] ?: run {
             val constructor =
-                pluginClass.getConstructor(Sender::class.java, AgentInfo::class.java, String::class.java)
-            val plugin = constructor.newInstance(wsService, agentEntry.agent, pluginId)
+                pluginClass.getConstructor(AdminData::class.java, Sender::class.java, AgentInfo::class.java, String::class.java)
+            val agentInfo = agentEntry.agent
+            val plugin = constructor.newInstance(
+                agentManager.adminData(agentInfo.id),
+                wsService,
+                agentInfo,
+                pluginId
+            )
             agentEntry.instance[pluginId] = plugin
             plugin
         }
@@ -114,7 +122,6 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                 post<Routes.Api.Agent.AddNewPlugin> { (agentId) ->
                     val pluginId = call.parse(PluginId.serializer()).pluginId
                     val (status, msg) = when (pluginId) {
-                        null -> HttpStatusCode.BadRequest to "Plugin id is null for agent '$agentId'"
                         in plugins.keys -> {
                             if (agentId in agentManager) {
                                 val agentInfo = agentManager[agentId]!!
@@ -164,6 +171,3 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
         }
     }
 }
-
-@Serializable
-data class PluginId(val pluginId: String?)

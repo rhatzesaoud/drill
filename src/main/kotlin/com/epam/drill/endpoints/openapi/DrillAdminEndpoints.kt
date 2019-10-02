@@ -23,7 +23,7 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
     private val agentManager: AgentManager by instance()
     private val plugins: Plugins by kodein.instance()
     private val topicResolver: TopicResolver by instance()
-    val notificationsManager: NotificationsManager by instance()
+    private val notificationsManager: NotificationsManager by instance()
 
     init {
         app.routing {
@@ -159,6 +159,16 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                     call.respond(statusCode, response)
                 }
             }
+
+            authenticate {
+                post<Routes.Api.Agent.SetPackages> { (agentId) ->
+                    val prefixes = PackagesPrefixes.serializer() parse call.receiveText()
+                    agentManager.configurePackages(prefixes, agentId)
+                    agentManager.adminData(agentId).packagesPrefixes = prefixes
+                    call.respond(HttpStatusCode.OK, "Trigger for classes processing sent to agent with id $agentId")
+                }
+            }
+
         }
     }
 }

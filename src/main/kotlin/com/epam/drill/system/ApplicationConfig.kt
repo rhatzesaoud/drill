@@ -10,3 +10,9 @@ fun Application.securePort(): String {
         .getString()
     return sslPort
 }
+
+fun Application.isDevMode(): Boolean {
+    val dev = environment.config
+        .config("ktor").property("dev").getString()
+    return dev == "true"
+}

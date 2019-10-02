@@ -65,7 +65,7 @@ class AgentWsTest {
         val sslPort = "8443"
         AppBuilder.withKModule {
             kodeinModule("addition") {
-                configuration(this, this@withKModule)
+                configuration(this)
             }
         }
 
@@ -110,7 +110,7 @@ class AgentWsTest {
         token: String,
         badRequest: HttpStatusCode
     ) {
-        val (status, content) =
+        val status =
             testApplicationEngine.handleRequest(
                 HttpMethod.Post,
                 testApplicationCall.locations.href(Routes.Api.UpdateAgentConfig(agentId))
@@ -121,9 +121,7 @@ class AgentWsTest {
                         name = "modified"
                     )
                 )
-            }.run {
-                response.status() to response.content
-            }
+            }.run { response.status() }
 
         status shouldBe badRequest
     }
@@ -142,7 +140,7 @@ class AgentWsTest {
 }
 
 
-private fun configuration(builder: Kodein.Builder, kodeinConf: KodeinConf) {
+private fun configuration(builder: Kodein.Builder) {
     builder.bind<AgentManager>() with builder.eagerSingleton {
         spyk(AgentManager(kodein)).apply {
             val thiz = this

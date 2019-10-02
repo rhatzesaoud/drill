@@ -10,7 +10,6 @@ import com.epam.drill.storage.*
 import com.epam.drill.util.*
 import io.ktor.application.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
@@ -91,6 +90,10 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
 
                 topic<WsRoutes.GetNotifications> {
                     notificationsManager.allNotifications
+                }
+
+                topic<WsRoutes.GetBuilds> { (agentId) ->
+                    agentManager.adminData(agentId).buildManager.summaries
                 }
             }
 

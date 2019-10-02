@@ -30,6 +30,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
     private val sessionStorage: ConcurrentMap<String, MutableSet<SessionData>> = ConcurrentHashMap()
     private val agentManager: AgentManager by instance()
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun send(agentInfo: AgentInfo, destination: String, message: Any) {
         val id = "${agentInfo.id}:$destination:${agentInfo.buildVersion}"
         if (message.toString().isEmpty()) {
@@ -69,7 +70,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
                             val event = WsReceiveMessage.serializer() parse frame.readText()
                             when (event.type) {
                                 WsMessageType.SUBSCRIBE -> {
-                                    val subscribeInfo = SubscribeInfo.serializer() parse (event.message as String)
+                                    val subscribeInfo = SubscribeInfo.serializer() parse event.message
 
                                     saveSession(event.destination, subscribeInfo)
                                     val buildVersion = subscribeInfo.buildVersion

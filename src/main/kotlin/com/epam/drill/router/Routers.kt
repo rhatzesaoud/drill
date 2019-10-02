@@ -33,6 +33,9 @@ object Routes {
 
             @Location("/{agentId}/unregister")
             data class UnregisterAgent(val agentId: String)
+
+            @Location("/{agentId}/set-packages")
+            data class SetPackages(val agentId: String)
         }
 
         @Location("/{agentId}/{pluginId}/reset")
