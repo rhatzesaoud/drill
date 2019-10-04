@@ -76,6 +76,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.0.13")
 
     testImplementation("io.mockk:mockk:1.9.3")
+    testImplementation("org.eclipse.jgit:org.eclipse.jgit:5.5.0.201909110433-r")
     testImplementation(kotlin("test-junit"))
     integrationTestImplementation(ktor("server-test-host"))
     integrationTestImplementation("io.kotlintest:kotlintest-runner-junit5:3.3.2")
