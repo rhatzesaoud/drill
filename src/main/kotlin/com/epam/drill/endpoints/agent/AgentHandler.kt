@@ -83,10 +83,16 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                             }
                         }
                         MessageType.CLASSES_DATA -> {
-                            agentManager.adminData(agentInfo.id)
-                                .buildManager
-                                .fillClassesData(message.data, agentInfo.buildVersion)
-                            agentManager.resetAllPlugins(agentInfo.id)
+                            if (message.data.isBlank()) {
+                                agentManager.adminData(agentInfo.id)
+                                    .buildManager
+                                    .fillClassesData(agentInfo.buildVersion)
+                                agentManager.resetAllPlugins(agentInfo.id)
+                            } else {
+                                agentManager.adminData(agentInfo.id)
+                                    .buildManager
+                                    .addClass(message.data)
+                            }
                         }
                         else -> {
                             logger.warn { "How do you want to process '${message.type}' event?" }

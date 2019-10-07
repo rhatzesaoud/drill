@@ -15,6 +15,14 @@ class AgentBuildManager(val agentId: String) : BuildManager {
 
     override val buildInfos: MutableMap<String, BuildInfo> = ConcurrentHashMap()
 
+    private val _jsonClasses = atomic(mapOf<String, String>())
+
+    private var jsonClasses: Map<String, String>
+        get() = _jsonClasses.value
+        private set(value) {
+            _jsonClasses.value = value
+        }
+
     private var lastBuild: String
         get() = _lastBuild.value
         private set(value) {
@@ -26,20 +34,25 @@ class AgentBuildManager(val agentId: String) : BuildManager {
 
     override operator fun get(buildVersion: String) = buildInfos[buildVersion]
 
-    fun fillClassesData(rawData: String, buildVersion: String) {
+    fun addClass(rawData: String) {
+        val rawJsonClasses = (JsonClasses.serializer() parse rawData).classes
+        jsonClasses = jsonClasses + rawJsonClasses
+    }
+
+    fun fillClassesData(buildVersion: String) {
         val buildVersionIsNew = buildInfos[buildVersion] == null
-        val jsonClasses = JsonClasses.serializer() parse rawData
         val buildInfo = buildInfos[buildVersion] ?: BuildInfo()
         val prevBuild = buildInfo.prevBuild
         buildInfos[buildVersion] = buildInfo.copy(
             buildVersion = buildVersion,
             prevBuild = if (buildVersionIsNew) lastBuild else prevBuild,
-            classesBytes = jsonClasses.classes.mapValues { decode(it.value) }
+            classesBytes = jsonClasses.mapValues { decode(it.value) }
         )
         if (buildVersionIsNew) {
             lastBuild = buildVersion
         }
         compareToPrev(buildVersion)
+        jsonClasses = mapOf()
     }
 
     private fun compareToPrev(buildVersion: String) {
