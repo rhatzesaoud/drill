@@ -74,7 +74,12 @@ fun topicRegister() =
 
         topic("/agent/load-classes-data").rawMessage {
             val jsonClasses = getClassesByConfig()
-            sendMessage(Message.serializer() stringify Message(MessageType.CLASSES_DATA, "", jsonClasses))
+            val classesMap = JsonClasses.serializer() parse jsonClasses
+            classesMap.classes.map { (className, bytes) ->
+                val jsonPair = JsonClasses.serializer() stringify JsonClasses(mapOf(className to bytes))
+                sendMessage(Message.serializer() stringify Message(MessageType.CLASSES_DATA, "", jsonPair))
+            }
+            sendMessage(Message.serializer() stringify Message(MessageType.CLASSES_DATA, "", ""))
             topicLogger.info { "Agent's application classes processing by config triggered" }
         }
 
