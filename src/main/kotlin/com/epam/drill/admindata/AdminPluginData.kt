@@ -8,8 +8,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.*
 
-const val DEV_PROPERTIES = "src/main/resources/dev.application.properties"
-const val PROD_PROPERTIES = "src/main/resources/prod.application.properties"
+const val APP_CONFIG = ".application.properties"
 
 private val logger = KotlinLogging.logger {}
 
@@ -28,12 +27,12 @@ class AdminPluginData(val agentId: String, private val devMode: Boolean) : Admin
     override var buildManager = AgentBuildManager(agentId)
 
     private fun readPackages(): List<String> = Properties().run {
-        val propertiesFileName = if (devMode) DEV_PROPERTIES else PROD_PROPERTIES
+        val propertiesFileName = if (devMode) "dev$APP_CONFIG" else "prod$APP_CONFIG"
         getPackagesProperty(propertiesFileName)
     }
 
     private fun Properties.getPackagesProperty(fileName: String): List<String> = try {
-        load(FileInputStream(fileName))
+        load(AdminPluginData::class.java.getResourceAsStream("/$fileName"))
         getProperty("prefixes").split(",")
     } catch (ioe: IOException) {
         logger.error("Could not open properties file; packages prefixes are empty")
