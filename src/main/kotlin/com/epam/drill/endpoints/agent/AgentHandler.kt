@@ -82,17 +82,21 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                                 state = false
                             }
                         }
+                        MessageType.START_CLASSES_TRANSFER -> {
+                            agentManager.adminData(agentInfo.id)
+                                .buildManager
+                                .setupBuildInfo(agentInfo.buildVersion)
+                        }
                         MessageType.CLASSES_DATA -> {
-                            if (message.data.isBlank()) {
-                                agentManager.adminData(agentInfo.id)
-                                    .buildManager
-                                    .fillClassesData(agentInfo.buildVersion)
-                                agentManager.resetAllPlugins(agentInfo.id)
-                            } else {
-                                agentManager.adminData(agentInfo.id)
-                                    .buildManager
-                                    .addClass(message.data)
-                            }
+                            agentManager.adminData(agentInfo.id)
+                                .buildManager
+                                .addClass(agentInfo.buildVersion, message.data)
+                        }
+                        MessageType.FINISH_CLASSES_TRANSFER -> {
+                            agentManager.adminData(agentInfo.id)
+                                .buildManager
+                                .compareToPrev(agentInfo.buildVersion)
+                            agentManager.resetAllPlugins(agentInfo.id)
                         }
                         else -> {
                             logger.warn { "How do you want to process '${message.type}' event?" }

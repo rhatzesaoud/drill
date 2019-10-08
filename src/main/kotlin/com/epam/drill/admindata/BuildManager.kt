@@ -15,14 +15,6 @@ class AgentBuildManager(val agentId: String) : BuildManager {
 
     override val buildInfos: MutableMap<String, BuildInfo> = ConcurrentHashMap()
 
-    private val _jsonClasses = atomic(mapOf<String, String>())
-
-    private var jsonClasses: Map<String, String>
-        get() = _jsonClasses.value
-        private set(value) {
-            _jsonClasses.value = value
-        }
-
     private var lastBuild: String
         get() = _lastBuild.value
         private set(value) {
@@ -34,28 +26,30 @@ class AgentBuildManager(val agentId: String) : BuildManager {
 
     override operator fun get(buildVersion: String) = buildInfos[buildVersion]
 
-    fun addClass(rawData: String) {
-        val rawJsonClasses = (JsonClasses.serializer() parse rawData).classes
-        jsonClasses = jsonClasses + rawJsonClasses
-    }
-
-    fun fillClassesData(buildVersion: String) {
+    fun setupBuildInfo(buildVersion: String) {
         val buildVersionIsNew = buildInfos[buildVersion] == null
         val buildInfo = buildInfos[buildVersion] ?: BuildInfo()
         val prevBuild = buildInfo.prevBuild
         buildInfos[buildVersion] = buildInfo.copy(
             buildVersion = buildVersion,
-            prevBuild = if (buildVersionIsNew) lastBuild else prevBuild,
-            classesBytes = jsonClasses.mapValues { decode(it.value) }
+            classesBytes = emptyMap(),
+            prevBuild = if (buildVersionIsNew) lastBuild else prevBuild
         )
         if (buildVersionIsNew) {
             lastBuild = buildVersion
         }
-        compareToPrev(buildVersion)
-        jsonClasses = mapOf()
     }
 
-    private fun compareToPrev(buildVersion: String) {
+    fun addClass(buildVersion: String, rawData: String) {
+        val buildInfo = buildInfos[buildVersion] ?: BuildInfo()
+        val currentClasses = buildInfo.classesBytes
+        val base64Class = Base64Class.serializer() parse rawData
+        buildInfos[buildVersion] = buildInfo.copy(
+            classesBytes = currentClasses + (base64Class.className to decode(base64Class.encodedBytes))
+        )
+    }
+
+    fun compareToPrev(buildVersion: String) {
         val currentMethods = buildInfos[buildVersion]?.classesBytes?.mapValues { (className, bytes) ->
             BcelClassParser(bytes, className).parseToJavaMethods()
         } ?: emptyMap()
