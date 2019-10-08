@@ -6,15 +6,14 @@ import com.epam.drill.common.*
 import com.epam.drill.dataclasses.*
 import com.epam.drill.endpoints.agent.*
 import com.epam.drill.plugins.*
-import com.epam.drill.service.*
 import com.epam.drill.storage.*
 import com.epam.drill.system.*
 import com.epam.drill.util.*
+import com.epam.kodux.*
 import io.ktor.application.*
 import kotlinx.coroutines.*
 import mu.*
 import org.apache.commons.codec.digest.*
-import org.jetbrains.exposed.sql.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
@@ -29,69 +28,53 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     val app: Application by instance()
     val agentStorage: AgentStorage by instance()
     val plugins: Plugins by instance()
-    val adminData: AdminDataVault by instance()
+    private val adminData: AdminDataVault by instance()
+    private val store: StoreManger by instance()
 
-    suspend fun agentConfiguration(agentId: String, pBuildVersion: String) = asyncTransaction {
-        addLogger(StdOutSqlLogger)
-        val agentInfoDb = AgentInfoDb.findById(agentId)
-        if (agentInfoDb != null) {
-            when (agentInfoDb.status) {
-                AgentStatus.ONLINE -> agentInfoDb.apply {
-                    val existingVersion = buildVersions.find { it.buildVersion == pBuildVersion }
-                    val buildVersion = existingVersion ?: AgentBuildVersion.new {
-                        buildVersion = pBuildVersion
-                        name = ""
-                    }.apply {
-                        buildVersions = SizedCollection(buildVersions.toSet() + this)
-                        notificationsManager.save(
-                            agentId,
-                            agentInfoDb.name,
-                            NotificationType.BUILD,
-                            notificationsManager.buildArrivedMessage(pBuildVersion)
-                        )
-                        topicResolver.sendToAllSubscribed("/notifications")
-                    }
-
-                    this.buildVersion = pBuildVersion
-                    this.buildAlias = buildVersion.name
-                }
-                AgentStatus.NOT_REGISTERED -> {
-                    //TODO: add some processing for unregistered agents
-                }
-                AgentStatus.OFFLINE -> {
-                    //TODO: add some processing for disabled agents
-                }
-                else -> Unit
-            }
-            agentInfoDb.toAgentInfo()
-        } else {
-            AgentInfoDb.new(agentId) {
-                name = ""
-                status = AgentStatus.NOT_REGISTERED
-                groupName = ""
-                description = ""
-                this.buildVersion = pBuildVersion
-                buildAlias = INITIAL_BUILD_ALIAS
-                adminUrl = ""
-                plugins = SizedCollection()
-
-            }.apply {
-                this.buildVersions =
-                    SizedCollection(AgentBuildVersion.new {
-                        this.buildVersion = pBuildVersion
-                        this.name = INITIAL_BUILD_ALIAS
-                    })
-            }.toAgentInfo()
-        }
+    suspend fun agentConfiguration(agentId: String, pBuildVersion: String): AgentInfo {
+        val agentStore = store.agentStore(agentId)
+        return agentStore.store(agentStore.findById<AgentInfo>(agentId)?.apply {
+            updateBuildVersion(
+                pBuildVersion,
+                agentId
+            )
+        } ?: AgentInfo(
+            agentId,
+            agentId,
+            AgentStatus.NOT_REGISTERED,
+            "",
+            "",
+            pBuildVersion,
+            ""
+        ))
 
     }
+
+    private suspend fun AgentInfo.updateBuildVersion(pBuildVersion: String, agentId: String) {
+        if (status == AgentStatus.ONLINE) {
+            if (buildVersions.find { it.id == pBuildVersion } != null) {
+                notificationsManager.save(
+                    agentId,
+                    name,
+                    NotificationType.BUILD,
+                    notificationsManager.buildArrivedMessage(pBuildVersion)
+                )
+                topicResolver.sendToAllSubscribed("/notifications")
+
+                this.buildVersion = pBuildVersion
+                this.buildAlias = ""
+                buildVersions.add(AgentBuildVersionJson(pBuildVersion, ""))
+            }
+        }
+    }
+
 
     suspend fun updateAgent(agentId: String, au: AgentInfoWebSocketSingle) {
         getOrNull(agentId)?.apply {
             name = au.name
             groupName = au.group
             description = au.description
-            buildAlias = au.buildVersions.firstOrNull { it.id == this.buildVersion }?.name?:""
+            buildAlias = au.buildVersions.firstOrNull { it.id == this.buildVersion }?.name ?: ""
             buildVersions.replaceAll(au.buildVersions)
             status = au.status
             update(this@AgentManager)
@@ -99,14 +82,15 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     }
 
-    suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean = getOrNull(agentId)?.let { agentInfo ->
-        agentInfo.plugins.find { it.id == pc.id }?.let { plugin ->
-            if (plugin.config != pc.data) {
-                plugin.config = pc.data
-                agentInfo.update(this)
+    suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean =
+        getOrNull(agentId)?.let { agentInfo ->
+            agentInfo.plugins.find { it.id == pc.id }?.let { plugin ->
+                if (plugin.config != pc.data) {
+                    plugin.config = pc.data
+                    agentInfo.update(this)
+                }
             }
-        }
-    } != null
+        } != null
 
     suspend fun resetAgent(agInfo: AgentInfo) {
         val au = AgentInfoWebSocketSingle(
@@ -152,40 +136,24 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     fun getAllInstalledPluginBeanIds(agentId: String) = getOrNull(agentId)?.plugins?.map { it.id }
 
-    suspend fun addPluginFromLib(agentId: String, pluginId: String) = asyncTransaction {
-        val agentInfoDb = AgentInfoDb.findById(agentId)
-        if (agentInfoDb != null) {
+    suspend fun addPluginFromLib(agentId: String, pluginId: String) {
+        val agentInfo = store.agentStore(agentId).findById<AgentInfo>(agentId)
+        if (agentInfo != null) {
             plugins[pluginId]?.pluginBean?.let { plugin ->
-                val fillPluginBeanDb: PluginBeanDb.() -> Unit = {
-                    this.pluginId = plugin.id
-                    this.name = plugin.name
-                    this.description = plugin.description
-                    this.type = plugin.type
-                    this.family = plugin.family
-                    this.enabled = plugin.enabled
-                    this.config = plugin.config
-                }
-                val rawPluginNames = agentInfoDb.plugins.toList()
-                val existingPluginBeanDb = rawPluginNames.find { it.pluginId == pluginId }
+
+                val rawPluginNames = agentInfo.plugins.toList()
+                val existingPluginBeanDb = rawPluginNames.find { it.id == pluginId }
                 if (existingPluginBeanDb == null) {
-                    val newPluginBeanDb = PluginBeanDb.new(fillPluginBeanDb)
-                    agentInfoDb.plugins = SizedCollection(rawPluginNames + newPluginBeanDb)
-                    newPluginBeanDb
-                } else {
-                    existingPluginBeanDb.apply(fillPluginBeanDb)
+                    agentInfo.plugins += plugin
+                    updateAgentConfig(agentInfo)
+                    agentInfo.update(this@AgentManager)
+                    logger.info { "Plugin $pluginId successfully added to agent with id $agentId!" }
+
                 }
             }
         } else {
             logger.warn { "Agent with id $agentId not found in your DB." }
-            null
         }
-    }?.let { pluginBeanDb ->
-        val agentInfo = get(agentId)
-        agentInfo!!.plugins.add(pluginBeanDb.toPluginBean())
-        agentStorage.update()
-        agentStorage.singleUpdate(agentId)
-        updateAgentConfig(agentInfo)
-        logger.info { "Plugin $pluginId successfully added to agent with id $agentId!" }
     }
 
     suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
@@ -194,16 +162,14 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                 delay(300)
             }
             agentInfo.status = AgentStatus.BUSY
-            update()
-            singleUpdate(agentInfo.id)
+            agentInfo.update(this@AgentManager)
             agentInfo.plugins.forEach { pb ->
                 val data = plugins[pb.id]?.agentPluginPart!!.readBytes()
                 pb.md5Hash = DigestUtils.md5Hex(data)
                 sendBinary("/plugins/load", pb, data).await()
             }
             agentInfo.status = AgentStatus.ONLINE
-            update()
-            singleUpdate(agentInfo.id)
+            agentInfo.update(this@AgentManager)
         }
     }
 
@@ -225,6 +191,11 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         }
     }
 
+    suspend fun AgentInfo.update() {
+        store.agentStore(this.id).update(this)
+        agentStorage.targetMap[this.id]!!.agent = this
+    }
+
     suspend fun configurePackages(prefixes: PackagesPrefixes, agentId: String) {
         if (prefixes.packagesPrefixes.isNotEmpty()) {
             agentSession(agentId)?.setPackagesPrefixes(prefixes)
@@ -234,6 +205,13 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     fun packagesPrefixes(agentId: String) = adminData(agentId).packagesPrefixes
 
+}
+
+suspend fun AgentInfo.update(agentManager: AgentManager) {
+    val ai = this
+    agentManager.apply { ai.update() }
+    agentManager.update()
+    agentManager.singleUpdate(this.id)
 }
 
 suspend fun AgentWsSession.setPackagesPrefixes(data: PackagesPrefixes) =

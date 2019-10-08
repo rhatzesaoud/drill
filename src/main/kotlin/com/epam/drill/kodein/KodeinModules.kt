@@ -1,5 +1,6 @@
 package com.epam.drill.kodein
 
+import com.epam.drill.*
 import com.epam.drill.admindata.*
 import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
@@ -14,12 +15,13 @@ import com.epam.drill.service.*
 import com.epam.drill.storage.*
 import com.epam.drill.util.*
 import com.epam.drill.websockets.*
+import com.epam.kodux.*
 import io.ktor.application.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
 val storage: Kodein.Builder.(Application) -> Unit = { _ ->
-    bind<DataSourceRegistry>() with eagerSingleton { DataSourceRegistry() }
+    bind<StoreManger>() with eagerSingleton {StoreManger(drillWorkDir) }
     bind<AgentStorage>() with singleton { ObservableMapStorage<String, AgentEntry, MutableSet<AgentWsSession>>() }
     bind<CacheService>() with eagerSingleton { JvmCacheService() }
     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }

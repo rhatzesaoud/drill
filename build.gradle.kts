@@ -53,8 +53,6 @@ val integrationTestRuntime by configurations.creating {
     extendsFrom(configurations["testRuntime"])
 }
 
-
-
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(ktor("auth"))
@@ -65,11 +63,8 @@ dependencies {
     implementation(ktor("websockets"))
     implementation(drill("drill-admin-part-jvm"))
     implementation(drill("common-jvm", drillCommonLibVersion))
-    implementation("com.h2database:h2:1.4.197")
-    implementation("com.zaxxer:HikariCP:2.7.8")
     implementation("com.hazelcast:hazelcast:3.12")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
-    implementation("org.jetbrains.exposed:exposed:0.13.7")
     implementation("org.kodein.di:kodein-di-generic-jvm:6.2.0")
     implementation("io.github.microutils:kotlin-logging:1.6.24")
     implementation("org.slf4j:slf4j-simple:1.7.26")
@@ -77,6 +72,8 @@ dependencies {
     implementation("org.jacoco:org.jacoco.core:$jacocoVersion")
     implementation("io.vavr:vavr-kotlin:$vavrVersion")
     implementation("org.apache.bcel:bcel:$bcelVersion")
+    implementation("com.epam.drill:kodux-jvm:0.1.0")
+    implementation("org.jetbrains.xodus:xodus-entity-store:1.3.91")
 
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation("org.eclipse.jgit:org.eclipse.jgit:5.5.0.201909110433-r")

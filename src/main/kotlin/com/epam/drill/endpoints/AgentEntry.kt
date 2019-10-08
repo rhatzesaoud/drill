@@ -5,7 +5,7 @@ import com.epam.drill.endpoints.agent.*
 import com.epam.drill.plugin.api.end.*
 
 class AgentEntry(
-    val agent: AgentInfo,
+    var agent: AgentInfo,
     val agentSession: AgentWsSession,
     var instance: MutableMap<String, AdminPluginPart<*>> = mutableMapOf()
 )
