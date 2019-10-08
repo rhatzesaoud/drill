@@ -1,21 +1,22 @@
 package com.epam.drill.common
 
+import com.epam.kodux.Id
 import kotlinx.serialization.*
 
 @Serializable
 data class AgentInfo(
-    val id: String,
-    var name: String,
-    var status: AgentStatus,
-    var groupName: String? = "",
-    var description: String,
-    var buildVersion: String,
-    var buildAlias: String,
+        @Id val id: String,
+        var name: String,
+        var status: AgentStatus,
+        var groupName: String = "",
+        var description: String,
+        var buildVersion: String,
+        var buildAlias: String,
 
-    val adminUrl: String = "",
-    var ipAddress: String = "",
-    val buildVersions: MutableSet<AgentBuildVersionJson> = mutableSetOf(),
-    val plugins: MutableSet<PluginMetadata> = mutableSetOf()
+        val adminUrl: String = "",
+        var ipAddress: String = "",
+        val buildVersions: MutableSet<AgentBuildVersionJson> = mutableSetOf(),
+        val plugins: MutableSet<PluginMetadata> = mutableSetOf()
 
 ) {
     override fun equals(other: Any?): Boolean {

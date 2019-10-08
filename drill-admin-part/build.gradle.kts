@@ -17,6 +17,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
                 implementation("com.epam.drill:common:$drillCommonLibVersion")
+                implementation("com.epam.drill:kodux:0.1.0")
             }
         }
         val jvmMain by getting {
@@ -24,6 +25,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
                 implementation("com.epam.drill:common-jvm:$drillCommonLibVersion")
+                implementation("com.epam.drill:kodux-jvm:0.1.0")
             }
         }
     }
