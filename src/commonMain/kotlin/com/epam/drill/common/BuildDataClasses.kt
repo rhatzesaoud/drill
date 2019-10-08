@@ -53,8 +53,9 @@ data class BuildSummary(
 )
 
 @Serializable
-data class JsonClasses(
-    val classes: Map<String, String>
+data class Base64Class(
+    val className: String,
+    val encodedBytes: String
 )
 
 enum class DiffType {
