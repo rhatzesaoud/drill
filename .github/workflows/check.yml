@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build
         run: |
-          gradlew build
-          gradlew windowsX64Test
+          gradle build
+          gradle windowsX64Test
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
   check_for_mac:
@@ -22,6 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Build
-        run: gradlew build
+        run: gradle build
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
