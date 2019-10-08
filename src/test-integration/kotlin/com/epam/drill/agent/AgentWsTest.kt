@@ -102,7 +102,7 @@ class AgentWsTest {
     }
     var ex: Throwable? = null
 
-    @Test
+    @Test(timeout=5000)
     fun end2end() {
         val sslPort = "8443"
         val handler = CoroutineExceptionHandler { _, exception ->
