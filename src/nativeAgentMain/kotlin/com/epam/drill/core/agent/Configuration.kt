@@ -6,6 +6,7 @@ import com.epam.drill.core.*
 import com.epam.drill.jvmapi.*
 import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.logger.*
+import kotlinx.serialization.*
 
 fun performAgentInitialization(initialParams: Map<String, String>) {
     val adminAddress = initialParams.getValue("adminAddress")
@@ -34,7 +35,7 @@ fun calculateBuildVersion() {
     DLogger("BuildVersionLogger").info { "Calculated build version: ${agentConfig.buildVersion}" }
 }
 
-fun getClassesByConfig(): String {
+fun getClassesByConfig(): List<String> {
     val packagesPrefixes = exec { agentConfig.packagesPrefixes }
     val classLoadingUtilClass = FindClass("com/epam/drill/ws/ClassLoadingUtil")
     val selfMethodId: jfieldID? =
@@ -43,7 +44,7 @@ fun getClassesByConfig(): String {
     val retrieveClassesData: jmethodID? =
         GetMethodID(classLoadingUtilClass, "retrieveClassesData", "(Ljava/lang/String;)Ljava/lang/String;")
     val jsonClasses = CallObjectMethod(classLoadingUtil, retrieveClassesData, NewStringUTF(packagesPrefixes))
-    return jsonClasses.toKString() ?: ""
+    return String.serializer().list parse (jsonClasses.toKString() ?: "[]")
 }
 
 fun setPackagesPrefixes(prefixes: String) {

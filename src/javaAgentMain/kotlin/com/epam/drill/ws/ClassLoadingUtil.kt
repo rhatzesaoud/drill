@@ -6,7 +6,7 @@ import com.epam.drill.*
 import com.epam.drill.common.*
 import com.epam.drill.plugin.api.*
 import com.epam.drill.plugin.api.processing.*
-import com.epam.drill.session.*
+import kotlinx.serialization.*
 import java.util.jar.*
 
 object ClassLoadingUtil {
@@ -45,7 +45,12 @@ object ClassLoadingUtil {
             className to bytes
         }.toMap()
         println("Agent loaded ${AgentPluginData.classMap.keys.count()} classes")
-        return JsonClasses.serializer() stringify JsonClasses(AgentPluginData.classMap.mapValues { it.value.encode() })
+
+        val encodedClasses = AgentPluginData.classMap.map { (className, bytes) ->
+            Base64Class.serializer() stringify Base64Class(className, bytes.encode())
+        }
+
+        return String.serializer().list stringify encodedClasses
     }
 
 }

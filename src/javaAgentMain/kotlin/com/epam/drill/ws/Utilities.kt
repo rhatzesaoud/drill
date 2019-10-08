@@ -2,7 +2,6 @@ package com.epam.drill.ws
 
 import java.util.*
 
-
 fun isTopLevelClass(classPath: String) = !classPath.contains("$")
 
 fun isAllowedClass(classPath: String, packageName: String) =
