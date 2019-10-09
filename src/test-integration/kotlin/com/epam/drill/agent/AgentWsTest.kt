@@ -104,6 +104,8 @@ class AgentWsTest {
 
     @Test(timeout=5000)
     fun end2end() {
+        println(AgentInfo.serializer().descriptor)
+        println(AgentInfo.serializer().descriptor.getElementAnnotations(0))
         val sslPort = "8443"
         val handler = CoroutineExceptionHandler { _, exception ->
             ex = exception
