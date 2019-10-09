@@ -102,11 +102,8 @@ class AgentWsTest {
     }
     var ex: Throwable? = null
 
-    @Ignore
-    @Test(timeout=5000)
+    @Test(timeout=10000)
     fun end2end() {
-        println(AgentInfo.serializer().descriptor)
-        println(AgentInfo.serializer().descriptor.getElementAnnotations(0))
         val sslPort = "8443"
         val handler = CoroutineExceptionHandler { _, exception ->
             ex = exception

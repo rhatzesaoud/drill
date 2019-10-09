@@ -149,7 +149,11 @@ tasks {
     named("run") {
         dependsOn(downloadPlugins)
     }
-    
+
+    named("integrationTest") {
+        dependsOn(downloadPlugins)
+    }
+
     named("jib") {
         dependsOn(downloadPlugins)
     }
