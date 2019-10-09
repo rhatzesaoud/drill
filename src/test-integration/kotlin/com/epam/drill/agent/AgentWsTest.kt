@@ -102,6 +102,7 @@ class AgentWsTest {
     }
     var ex: Throwable? = null
 
+    @Ignore
     @Test(timeout=5000)
     fun end2end() {
         println(AgentInfo.serializer().descriptor)
