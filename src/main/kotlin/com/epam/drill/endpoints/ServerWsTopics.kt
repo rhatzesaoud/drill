@@ -93,7 +93,15 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                 }
 
                 topic<WsRoutes.GetBuilds> { (agentId) ->
-                    agentManager.adminData(agentId).buildManager.summaries
+                    val agentBuilds: Set<AgentBuildVersionJson> =
+                        agentManager.getOrNull(agentId)?.buildVersions ?: emptySet()
+                    agentManager.adminData(agentId).buildManager.summaries.map { summary ->
+                        summary.copy(
+                            name = agentBuilds.firstOrNull {
+                                it.id == summary.name
+                            }?.name ?: ""
+                        )
+                    }
                 }
             }
 

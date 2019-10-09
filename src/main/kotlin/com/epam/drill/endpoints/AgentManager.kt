@@ -79,7 +79,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
             status = au.status
             update(this@AgentManager)
         }
-
+        topicResolver.sendToAllSubscribed("/$agentId/builds")
     }
 
     suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean =
