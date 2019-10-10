@@ -10,7 +10,7 @@ import org.kodein.di.*
 import org.kodein.di.generic.*
 
 const val agentIsBusyMessage =
-    "Sorry, this agent is busy at the moment. Please try again later when Agent is available again"
+    "Sorry, this agent is busy at the moment. Please try again later"
 
 class RequestValidator(override val kodein: Kodein) : KodeinAware {
     val app: Application by instance()
