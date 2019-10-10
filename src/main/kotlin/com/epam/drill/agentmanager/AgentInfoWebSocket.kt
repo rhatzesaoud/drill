@@ -60,7 +60,7 @@ fun MutableSet<PluginMetadata>.activePluginsCount() = this.count { it.enabled }
 fun MutableSet<AgentInfo>.toAgentInfosWebSocket() = this.map {
     it.run {
         AgentInfoWebSocket(
-            id = id.take(20),
+            id = id,
             name = name,
             description = description.take(200),
             group = groupName,
