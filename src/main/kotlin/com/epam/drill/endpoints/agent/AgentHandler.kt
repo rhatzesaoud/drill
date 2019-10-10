@@ -26,6 +26,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
     private val app: Application by instance()
     private val agentManager: AgentManager by instance()
     private val pd: PluginDispatcher by kodein.instance()
+    private val topicResolver: TopicResolver by instance()
 
     init {
         app.routing {
@@ -97,6 +98,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                                 .buildManager
                                 .compareToPrev(agentInfo.buildVersion)
                             agentManager.resetAllPlugins(agentInfo.id)
+                            topicResolver.sendToAllSubscribed("/${agentInfo.id}/builds")
                         }
                         else -> {
                             logger.warn { "How do you want to process '${message.type}' event?" }

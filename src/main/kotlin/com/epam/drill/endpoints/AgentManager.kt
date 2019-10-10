@@ -51,8 +51,9 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     }
 
     private suspend fun AgentInfo.updateBuildVersion(pBuildVersion: String, agentId: String) {
-        if (status == AgentStatus.ONLINE) {
-            if (buildVersions.find { it.id == pBuildVersion } != null) {
+        if (status != AgentStatus.OFFLINE) {
+            val existingBuildVersion = buildVersions.find { it.id == pBuildVersion }
+            if ( existingBuildVersion == null) {
                 notificationsManager.save(
                     agentId,
                     name,
@@ -60,11 +61,10 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                     notificationsManager.buildArrivedMessage(pBuildVersion)
                 )
                 topicResolver.sendToAllSubscribed("/notifications")
-
-                this.buildVersion = pBuildVersion
-                this.buildAlias = ""
                 buildVersions.add(AgentBuildVersionJson(pBuildVersion, ""))
             }
+            this.buildVersion = pBuildVersion
+            this.buildAlias = existingBuildVersion?.name ?: ""
         }
     }
 
@@ -81,6 +81,20 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         }
         topicResolver.sendToAllSubscribed("/$agentId/builds")
     }
+
+    suspend fun updateAgentBuildAliases(
+        agentId: String,
+        buildVersion: AgentBuildVersionJson
+    ): AgentInfo? = getOrNull(agentId)
+        ?.apply {
+            if (this.buildVersion == buildVersion.id) {
+                this.buildAlias = buildVersion.name
+            }
+            this.buildVersions.removeAll { it.id == buildVersion.id }
+            this.buildVersions.add(buildVersion)
+            update(this@AgentManager)
+        }
+        .apply { topicResolver.sendToAllSubscribed("/$agentId/builds") }
 
     suspend fun updateAgentPluginConfig(agentId: String, pc: PluginConfig): Boolean =
         getOrNull(agentId)?.let { agentInfo ->

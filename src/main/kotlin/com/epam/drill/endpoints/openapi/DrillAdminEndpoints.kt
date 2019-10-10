@@ -14,7 +14,7 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.locations.post
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.routing.routing
+import io.ktor.routing.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
@@ -169,6 +169,18 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                 }
             }
 
+            authenticate {
+                post<Routes.Api.Agent.RenameBuildVersion> { (agentId) ->
+                    val buildVersion = AgentBuildVersionJson.serializer() parse call.receiveText()
+                    val agentInfo = agentManager.updateAgentBuildAliases(agentId, buildVersion)
+                    val (statusCode, response) = if (agentInfo == null) {
+                        HttpStatusCode.NotFound to "Agent with id $agentId not found"
+                    } else {
+                        HttpStatusCode.OK to "Agent with id $agentId have been updated"
+                    }
+                    call.respond(statusCode, response)
+                }
+            }
         }
     }
 }

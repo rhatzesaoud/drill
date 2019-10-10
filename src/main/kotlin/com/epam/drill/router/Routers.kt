@@ -36,6 +36,9 @@ object Routes {
 
             @Location("/{agentId}/set-packages")
             data class SetPackages(val agentId: String)
+
+            @Location("/{agentId}/rename-build")
+            data class RenameBuildVersion(val agentId: String)
         }
 
         @Location("/{agentId}/{pluginId}/reset")
