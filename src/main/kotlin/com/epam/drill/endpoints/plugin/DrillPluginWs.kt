@@ -31,8 +31,8 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
     private val agentManager: AgentManager by instance()
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun send(agentInfo: AgentInfo, destination: String, message: Any) {
-        val id = "${agentInfo.id}:$destination:${agentInfo.buildVersion}"
+    override suspend fun send(agentId: String, buildVersion: String, destination: String, message: Any) {
+        val id = "$agentId:$destination:$buildVersion"
         if (message.toString().isEmpty()) {
             eventStorage.remove(id)
         } else {
@@ -51,7 +51,7 @@ class DrillPluginWs(override val kodein: Kodein) : KodeinAware, Sender {
             sessionStorage[destination]?.let { sessionDataSet ->
                 sessionDataSet.forEach { data ->
                     try {
-                        if (data.subscribeInfo == SubscribeInfo(agentInfo.id, agentInfo.buildVersion))
+                        if (data.subscribeInfo == SubscribeInfo(agentId, buildVersion))
                             data.session.send(Frame.Text(messageForSend))
                     } catch (ex: Exception) {
                         sessionDataSet.removeIf { it == data }

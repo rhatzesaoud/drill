@@ -99,7 +99,7 @@ class PluginWsTest {
                 val destination = "/pluginTopic1"
                 val messageForTest = "testMessage"
                 val wsPluginService: DrillPluginWs by kodeinApplication.instance()
-                wsPluginService.send(agentInfo, destination, messageForTest)
+                wsPluginService.send(agentInfo.id, agentInfo.buildVersion, destination, messageForTest)
                 outgoing.send(
                     UiMessage(
                         WsMessageType.SUBSCRIBE,

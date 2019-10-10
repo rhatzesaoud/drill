@@ -9,6 +9,7 @@ import com.epam.drill.plugin.api.message.*
 import com.epam.drill.plugins.*
 import com.epam.drill.router.*
 import com.epam.drill.util.*
+import com.epam.kodux.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.utils.*
@@ -29,6 +30,7 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
     private val agentManager: AgentManager by instance()
     private val wsService: Sender by kodein.instance()
     private val topicResolver: TopicResolver by instance()
+    private val store: StoreManger by instance()
 
     suspend fun processPluginData(pluginData: String, agentInfo: AgentInfo) {
         val message = MessageWrapper.serializer().parse(pluginData)
@@ -51,11 +53,18 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
     ): AdminPluginPart<*> {
         return agentEntry?.instance!![pluginId] ?: run {
             val constructor =
-                pluginClass.getConstructor(AdminData::class.java, Sender::class.java, AgentInfo::class.java, String::class.java)
+                pluginClass.getConstructor(
+                    AdminData::class.java,
+                    Sender::class.java,
+                    StoreClient::class.java,
+                    AgentInfo::class.java,
+                    String::class.java
+                )
             val agentInfo = agentEntry.agent
             val plugin = constructor.newInstance(
                 agentManager.adminData(agentInfo.id),
                 wsService,
+                store.agentStore(agentInfo.id),
                 agentInfo,
                 pluginId
             )
