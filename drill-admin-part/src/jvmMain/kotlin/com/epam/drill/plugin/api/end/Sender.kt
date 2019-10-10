@@ -3,5 +3,5 @@ package com.epam.drill.plugin.api.end
 import com.epam.drill.common.*
 
 interface Sender {
-    suspend fun send(agentInfo: AgentInfo, destination: String, message: Any)
+    suspend fun send(agentId: String, buildVersion: String, destination: String, message: Any)
 }
