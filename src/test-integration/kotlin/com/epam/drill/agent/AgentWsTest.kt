@@ -135,7 +135,7 @@ class AgentWsTest {
                         register(agentId, AgentRegistrationInfo("xz", "ad", "sad"), token)
                         readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.ONLINE
 
-                        addPlugin(agentId, PluginId("coverage"), token)
+                        addPlugin(agentId, PluginId("test-to-code-mapping"), token)
                         val pluginMetadata = PluginMetadata.serializer() parse (readAgentMessage(incoming)).data
                         incoming.receive().shouldBeInstanceOf<Frame.Binary> { pluginFile ->
                             DigestUtils.md5Hex(pluginFile.readBytes()) shouldBe pluginMetadata.md5Hash
