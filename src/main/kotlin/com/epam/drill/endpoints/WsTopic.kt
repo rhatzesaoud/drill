@@ -6,12 +6,15 @@ import io.ktor.http.*
 import io.ktor.locations.*
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.*
+import org.kodein.di.*
+import org.kodein.di.generic.*
 import java.util.concurrent.*
 import kotlin.collections.set
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
-class WsTopic {
+class WsTopic(override val kodein: Kodein) : KodeinAware {
+    private val app: Application by instance()
     val pathToCallBackMapping: MutableMap<String, Pair<KClass<*>, CallbackWrapper<Any, Any>>> = ConcurrentHashMap()
     private val p = "\\{(.*)}".toRegex()
 
@@ -19,8 +22,7 @@ class WsTopic {
         block(this)
     }
 
-
-    fun Application.resolve(destination: String): Any {
+    fun resolve(destination: String): Any {
         if (pathToCallBackMapping.isEmpty()) return ""
         val urlTokens = destination.split("/")
 
@@ -47,10 +49,10 @@ class WsTopic {
             val map = mutableMapOf.map { Pair(it.key, listOf(it.value)) }
             parametersOf(* map.toTypedArray())
         }
-        val param = feature(Locations).resolve<Any>(next.value.first, parameters)
+        val param = app.feature(Locations).resolve<Any>(next.value.first, parameters)
 
         val result = next.value.second.resolve(param)
-        return result
+        return result ?: ""
     }
 }
 
@@ -61,8 +63,8 @@ inline fun <reified R : Any> WsTopic.topic(noinline block: (R) -> Any?) {
     pathToCallBackMapping[path] = R::class to CallbackWrapper(block) as CallbackWrapper<Any, Any>
 }
 
-class CallbackWrapper<T, R>(val block: (R) -> T) {
-    fun resolve(param: R): T {
+class CallbackWrapper<T, R>(val block: (R) -> T?) {
+    fun resolve(param: R): T? {
         return block(param)
     }
 }

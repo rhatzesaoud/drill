@@ -9,21 +9,16 @@ import org.kodein.di.*
 import org.kodein.di.generic.*
 
 class TopicResolver(override val kodein: Kodein) : KodeinAware {
-    private val app: Application by instance()
     private val wsTopic: WsTopic by instance()
     private val sessionStorage: SessionStorage by instance()
 
     suspend fun sendToAllSubscribed(destination: String) {
-        app.run {
-            wsTopic {
-                val message = resolve(destination) ?: ""
-                sessionStorage.sendTo(
-                    destination,
-                    message,
-                    WsMessageType.MESSAGE
-                )
-            }
-        }
+        val message = wsTopic.resolve(destination)
+        sessionStorage.sendTo(
+            destination,
+            message,
+            WsMessageType.MESSAGE
+        )
     }
 
 }

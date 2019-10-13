@@ -36,7 +36,7 @@ val wsHandler: Kodein.Builder.(Application) -> Unit = { _ ->
     bind<DrillServerWs>() with eagerSingleton { DrillServerWs(kodein) }
     bind<TopicResolver>() with eagerSingleton { TopicResolver(kodein) }
     bind<ServerWsTopics>() with eagerSingleton { ServerWsTopics(kodein) }
-    bind<WsTopic>() with singleton { WsTopic() }
+    bind<WsTopic>() with singleton { WsTopic(kodein) }
 }
 
 val handlers: Kodein.Builder.(Application) -> Unit = { _ ->

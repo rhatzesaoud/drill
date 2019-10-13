@@ -31,7 +31,7 @@ class PluginWsTest {
                 kodeinModule("test") {
                     bind<LoginHandler>() with eagerSingleton { LoginHandler(kodein) }
                     bind<DrillPluginWs>() with eagerSingleton { DrillPluginWs(kodein) }
-                    bind<WsTopic>() with singleton { WsTopic() }
+                    bind<WsTopic>() with singleton { WsTopic(kodein) }
                     bind<CacheService>() with eagerSingleton { JvmCacheService() }
                     bind<AgentStorage>() with eagerSingleton { AgentStorage() }
                     bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
