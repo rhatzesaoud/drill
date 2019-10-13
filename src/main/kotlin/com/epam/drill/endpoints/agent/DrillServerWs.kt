@@ -10,11 +10,13 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
+import mu.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
 
 class DrillServerWs(override val kodein: Kodein) : KodeinAware {
+    private val logger = KotlinLogging.logger {}
     private val app: Application by instance()
     private val topicResolver: TopicResolver by instance()
     private val sessionStorage: SessionStorage by instance()
@@ -46,20 +48,17 @@ class DrillServerWs(override val kodein: Kodein) : KodeinAware {
 
                         }
                     }
-                } catch (ex: Throwable) {
-                    println("Session was removed")
+                } catch (ex: Exception) {
+                    logger.info { "Session was removed" }
                     sessionStorage.remove(rawWsSession)
                 }
             }
         }
     }
 
-    private suspend fun subscribe(
-        wsSession: DrillWsSession,
-        event: WsReceiveMessage
-    ) {
+    private suspend fun subscribe(wsSession: DrillWsSession, event: WsReceiveMessage) {
         sessionStorage += (wsSession)
-        println("${event.destination} is subscribed")
+        logger.info { "${event.destination} is subscribed" }
         topicResolver.sendToAllSubscribed(event.destination)
     }
 }
