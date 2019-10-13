@@ -8,6 +8,8 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import java.util.concurrent.*
 import kotlin.reflect.*
+import kotlin.time.*
+import kotlin.time.Duration
 
 
 val subscribers = ConcurrentHashMap<String, Signal>()
@@ -37,12 +39,18 @@ suspend fun AgentWsSession.sendBinary(topicName: String, meta: Any = "", data: B
 
 
 class Signal(var state: Boolean = false, val callback: suspend (Any) -> Unit) {
-    suspend fun await() {
-        while (state) {
-            delay(50)
-        }
+    suspend fun await(timeout: Duration = 10.seconds) {
+        awaitWithExpr(timeout) { state }
     }
+}
 
+
+suspend fun awaitWithExpr(timeout: Duration, delay: Long = 50, state: () -> Boolean) {
+    val expirationMark = MonoClock.markNow() + timeout
+    while (state()) {
+        if (expirationMark.hasPassedNow()) throw WsAwaitException("did't get signal by $timeout")
+        delay(delay)
+    }
 }
 
 class WsDeferred(val topicName: String) {
@@ -71,5 +79,7 @@ fun Route.agentWebsocket(path: String, protocol: String? = null, handler: suspen
         handler(AgentWsSession(this))
     }
 }
+
+class WsAwaitException(message: String) : RuntimeException(message)
 
 open class AgentWsSession(val session: DefaultWebSocketServerSession) : DefaultWebSocketServerSession by session

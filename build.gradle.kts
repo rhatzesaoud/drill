@@ -115,7 +115,6 @@ idea {
         testSourceDirs = (sourceSets[testIngerationModuleName].withConvention(KotlinSourceSet::class) { kotlin.srcDirs})
         testResourceDirs = (sourceSets[testIngerationModuleName].resources.srcDirs)
         scopes["TEST"]?.get("plus")?.add(integrationTestImplementation)
-        println( scopes["TEST"])
     }
 }
 
@@ -138,6 +137,7 @@ tasks {
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.locations.KtorExperimentalLocationsAPI"
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=io.ktor.util.KtorExperimentalAPI"
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.Experimental"
+        kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.time.ExperimentalTime"
         kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlinx.serialization.ImplicitReflectionSerializer"
     }
 
