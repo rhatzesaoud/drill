@@ -39,7 +39,7 @@ suspend fun AgentWsSession.sendBinary(topicName: String, meta: Any = "", data: B
 
 
 class Signal(var state: Boolean = false, val callback: suspend (Any) -> Unit) {
-    suspend fun await(timeout: Duration = 10.seconds) {
+    suspend fun await(timeout: Duration = 40.seconds) {
         awaitWithExpr(timeout) { state }
     }
 }

@@ -173,7 +173,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
         agentSession(agentInfo.id)?.apply {
-            awaitWithExpr(5.seconds,300) { agentInfo.status != AgentStatus.ONLINE }
+            awaitWithExpr(40.seconds,300) { agentInfo.status != AgentStatus.ONLINE }
             agentInfo.status = AgentStatus.BUSY
             agentInfo.update(this@AgentManager)
             agentInfo.plugins.forEach { pb ->
