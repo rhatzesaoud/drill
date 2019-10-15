@@ -85,7 +85,10 @@ suspend fun websocket(adminUrl: String) {
                     val pluginMetadata = PluginMetadata.serializer() parse message.data
                     binaryTopicsStorage[pluginMetadata] = topic
                 }
-                is InfoTopic -> topic.block(message.data)
+                is InfoTopic -> {
+                    topic.block(message.data)
+                    sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE_DELIVERED, destination))
+                }
                 is GenericTopic<*> -> {
                     topic.deserializeAndRun(message.data)
                     sendMessage(Message.serializer() stringify Message(MessageType.MESSAGE_DELIVERED, destination))
