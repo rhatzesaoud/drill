@@ -34,27 +34,24 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     suspend fun agentConfiguration(agentId: String, pBuildVersion: String): AgentInfo {
         val agentStore = store.agentStore(agentId)
-        return agentStore.store(agentStore.findById<AgentInfo>(agentId)?.apply {
-            updateBuildVersion(
-                pBuildVersion,
-                agentId
-            )
-        } ?: AgentInfo(
-            agentId,
-            agentId,
-            AgentStatus.NOT_REGISTERED,
-            "",
-            "",
-            pBuildVersion,
-            ""
-        ))
-
+        val existingAgent =
+            agentStore.findById<AgentInfo>(agentId)?.apply { updateBuildVersion(pBuildVersion, agentId) }
+                ?: return AgentInfo(
+                    agentId,
+                    agentId,
+                    AgentStatus.NOT_REGISTERED,
+                    "",
+                    "",
+                    pBuildVersion,
+                    ""
+                )
+        return agentStore.store(existingAgent)
     }
 
     private suspend fun AgentInfo.updateBuildVersion(pBuildVersion: String, agentId: String) {
         if (status != AgentStatus.OFFLINE) {
             val existingBuildVersion = buildVersions.find { it.id == pBuildVersion }
-            if ( existingBuildVersion == null) {
+            if (existingBuildVersion == null) {
                 notificationsManager.save(
                     agentId,
                     name,
@@ -173,16 +170,20 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
         agentSession(agentInfo.id)?.apply {
-            awaitWithExpr(40.seconds,300) { agentInfo.status != AgentStatus.ONLINE }
+            awaitWithExpr(40.seconds, 300) { agentInfo.status != AgentStatus.ONLINE }
             agentInfo.status = AgentStatus.BUSY
             agentInfo.update(this@AgentManager)
-            agentInfo.plugins.forEach { pb ->
-                val data = plugins[pb.id]?.agentPluginPart!!.readBytes()
-                pb.md5Hash = DigestUtils.md5Hex(data)
-                sendBinary("/plugins/load", pb, data).await()
+            try {
+                agentInfo.plugins.forEach { pb ->
+                    val data = plugins[pb.id]?.agentPluginPart!!.readBytes()
+                    pb.md5Hash = DigestUtils.md5Hex(data)
+                    sendBinary("/plugins/load", pb, data).await()
+                }
+            } finally {
+                agentInfo.status = AgentStatus.ONLINE
+                agentInfo.update(this@AgentManager)
             }
-            agentInfo.status = AgentStatus.ONLINE
-            agentInfo.update(this@AgentManager)
+
         }
     }
 
@@ -205,7 +206,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     }
 
     suspend fun AgentInfo.update() {
-        store.agentStore(this.id).update(this)
+        store.agentStore(this.id).store(this)
         agentStorage.targetMap[this.id]!!.agent = this
     }
 

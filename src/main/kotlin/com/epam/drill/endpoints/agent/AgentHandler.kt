@@ -39,12 +39,12 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                 agentManager.update()
 
                 logger.info { "Agent WS is connected. Client's address is ${call.request.local.remoteHost}" }
-                if (needSync)
-                    agentManager.updateAgentConfig(agentInfo)
-
-                val packages = agentManager.packagesPrefixes(agentInfo.id)
-                agentManager.configurePackages(packages, agentInfo.id)
-
+                if (agentInfo.status != AgentStatus.NOT_REGISTERED) {
+                    if (needSync)
+                        agentManager.updateAgentConfig(agentInfo)
+                    val packages = agentManager.packagesPrefixes(agentInfo.id)
+                    agentManager.configurePackages(packages, agentInfo.id)
+                }
                 val sslPort = app.securePort()
 
                 sendToTopic("/agent/config", ServiceConfig(sslPort))

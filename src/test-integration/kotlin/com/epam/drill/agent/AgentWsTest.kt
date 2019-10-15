@@ -68,6 +68,7 @@ val ai = AgentInfo(
 class AgentWsTest {
     @get:Rule
     val projectDir = TemporaryFolder()
+    lateinit var storeManger: StoreManger
     val testApp: Application.(String) -> Unit = { sslPort ->
         (environment.config as MapApplicationConfig).apply {
             put("ktor.deployment.sslPort", sslPort)
@@ -91,18 +92,17 @@ class AgentWsTest {
             withKModule { kodeinModule("handlers", handlers) }
             withKModule { kodeinModule("pluginServices", pluginServices) }
             val baseLocation = projectDir.newFolder("xs").resolve("agent")
+           storeManger = StoreManger(baseLocation)
             withKModule {
                 kodeinModule("addition") {
-                    bind<StoreManger>() with eagerSingleton {
-                        StoreManger(baseLocation)
-                    }
+                    bind<StoreManger>() with eagerSingleton { storeManger }
                 }
             }
         })
     }
     var ex: Throwable? = null
 
-    @Test(timeout=10000)
+    @Test(timeout = 10000)
     fun end2end() {
         val sslPort = "8443"
         val handler = CoroutineExceptionHandler { _, exception ->
@@ -125,8 +125,7 @@ class AgentWsTest {
                     //create the '/agent/attach' websocket connection
                     handleWebSocketConversation("/agent/attach", wsRequestRequiredParams()) { incoming, outgoing ->
                         readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.NOT_REGISTERED
-                        readAgentMessage(incoming)
-                        readAgentMessage(incoming)
+                        storeManger.agentStore(agentId).getAll<AgentInfo>().isEmpty() shouldBe true
                         val (messageType, destination, data) = readAgentMessage(incoming)
                         messageType shouldBe MessageType.MESSAGE
                         destination shouldBe "/agent/config"
@@ -134,7 +133,7 @@ class AgentWsTest {
 
                         register(agentId, AgentRegistrationInfo("xz", "ad", "sad"), token)
                         readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.ONLINE
-
+                        storeManger.agentStore(agentId).getAll<AgentInfo>().isNotEmpty() shouldBe true
                         addPlugin(agentId, PluginId("test-to-code-mapping"), token)
                         val pluginMetadata = PluginMetadata.serializer() parse (readAgentMessage(incoming)).data
                         incoming.receive().shouldBeInstanceOf<Frame.Binary> { pluginFile ->
@@ -175,7 +174,9 @@ class AgentWsTest {
                         name = "modified"
                     )
                 )
-            }.run { response.status() }
+            }.run {
+                response.status()
+            }
 
         status shouldBe exceptedStatus
     }
