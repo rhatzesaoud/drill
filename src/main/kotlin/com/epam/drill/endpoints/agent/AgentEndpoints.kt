@@ -62,6 +62,7 @@ class AgentEndpoints(override val kodein: Kodein) : KodeinAware {
                             }
                         }
                         agentManager.updateAgent(agentId, au)
+                        agentManager.sync(agInfo, true)
                         call.respond(HttpStatusCode.OK, "Agent '$agentId' has been registered")
                     } else {
                         call.respond(HttpStatusCode.BadRequest, "Agent '$agentId' not found")

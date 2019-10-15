@@ -157,8 +157,9 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                 val existingPluginBeanDb = rawPluginNames.find { it.id == pluginId }
                 if (existingPluginBeanDb == null) {
                     agentInfo.plugins += plugin
-                    updateAgentConfig(agentInfo)
-                    agentInfo.update(this@AgentManager)
+                    wrapBusy(agentInfo) {
+                        sendPlugins()
+                    }
                     logger.info { "Plugin $pluginId successfully added to agent with id $agentId!" }
 
                 }
@@ -168,24 +169,19 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
         }
     }
 
-    suspend fun updateAgentConfig(agentInfo: AgentInfo) = app.launch {
-        agentSession(agentInfo.id)?.apply {
-            awaitWithExpr(40.seconds, 300) { agentInfo.status != AgentStatus.ONLINE }
-            agentInfo.status = AgentStatus.BUSY
-            agentInfo.update(this@AgentManager)
-            try {
-                agentInfo.plugins.forEach { pb ->
-                    val data = plugins[pb.id]?.agentPluginPart!!.readBytes()
-                    pb.md5Hash = DigestUtils.md5Hex(data)
-                    sendBinary("/plugins/load", pb, data).await()
-                }
-            } finally {
-                agentInfo.status = AgentStatus.ONLINE
-                agentInfo.update(this@AgentManager)
-            }
 
+    fun wrapBusy(ai: AgentInfo, block: suspend AgentInfo.() -> Unit) = app.launch {
+        awaitWithExpr(40.seconds, 300) { ai.status != AgentStatus.ONLINE }
+        ai.status = AgentStatus.BUSY
+        ai.update(this@AgentManager)
+        try {
+            block(ai)
+        } finally {
+            ai.status = AgentStatus.ONLINE
+            ai.update(this@AgentManager)
         }
     }
+
 
     fun adminData(agentId: String) = adminData[agentId] ?: run {
         val newAdminData = AdminPluginData(agentId, app.isDevMode())
@@ -219,6 +215,27 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
     fun packagesPrefixes(agentId: String) = adminData(agentId).packagesPrefixes
 
+    suspend fun sync(agentInfo: AgentInfo, needSync: Boolean) {
+        if (agentInfo.status != AgentStatus.NOT_REGISTERED) {
+            if (needSync)
+                wrapBusy(agentInfo) {
+                    configurePackages(packagesPrefixes(id), id)
+                    sendPlugins()
+                }
+        }
+    }
+
+    private suspend fun AgentInfo.sendPlugins() {
+        agentSession(id)?.apply {
+            if (plugins.isEmpty()) return@apply
+            plugins.forEach { pb ->
+                val data = this@AgentManager.plugins[pb.id]?.agentPluginPart!!.readBytes()
+                pb.md5Hash = DigestUtils.md5Hex(data)
+                sendBinary("/plugins/load", pb, data).await()
+            }
+        }
+    }
+
 }
 
 suspend fun AgentInfo.update(agentManager: AgentManager) {
@@ -229,7 +246,7 @@ suspend fun AgentInfo.update(agentManager: AgentManager) {
 }
 
 suspend fun AgentWsSession.setPackagesPrefixes(data: PackagesPrefixes) =
-    sendToTopic("/agent/set-packages-prefixes", data)
+    sendToTopic("/agent/set-packages-prefixes", data).await()
 
 suspend fun AgentWsSession.triggerClassesSending() =
-    sendToTopic("/agent/load-classes-data", "")
+    sendToTopic("/agent/load-classes-data", "").await()

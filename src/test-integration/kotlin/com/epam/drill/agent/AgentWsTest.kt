@@ -102,7 +102,7 @@ class AgentWsTest {
     }
     var ex: Throwable? = null
 
-    @Test(timeout = 10000)
+    @Test(timeout = 100000)
     fun end2end() {
         val sslPort = "8443"
         val handler = CoroutineExceptionHandler { _, exception ->
@@ -133,12 +133,18 @@ class AgentWsTest {
 
                         register(agentId, AgentRegistrationInfo("xz", "ad", "sad"), token)
                         readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.ONLINE
+                        readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.BUSY
+                        incoming.receive()
+                        outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/agent/set-packages-prefixes", ""))
+                        incoming.receive()
+                        outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/agent/load-classes-data", ""))
+                        readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.ONLINE
+
                         storeManger.agentStore(agentId).getAll<AgentInfo>().isNotEmpty() shouldBe true
                         addPlugin(agentId, PluginId("test-to-code-mapping"), token)
                         val pluginMetadata = PluginMetadata.serializer() parse (readAgentMessage(incoming)).data
                         incoming.receive().shouldBeInstanceOf<Frame.Binary> { pluginFile ->
                             DigestUtils.md5Hex(pluginFile.readBytes()) shouldBe pluginMetadata.md5Hash
-                            readGetAgentTopicMessage(uiIncoming)
                             readGetAgentTopicMessage(uiIncoming).status shouldBe AgentStatus.BUSY
                             `should return BADREQUEST if BUSY`(token)
                             outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/plugins/load", ""))

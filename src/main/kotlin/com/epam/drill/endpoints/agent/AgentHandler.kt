@@ -39,12 +39,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                 agentManager.update()
 
                 logger.info { "Agent WS is connected. Client's address is ${call.request.local.remoteHost}" }
-                if (agentInfo.status != AgentStatus.NOT_REGISTERED) {
-                    if (needSync)
-                        agentManager.updateAgentConfig(agentInfo)
-                    val packages = agentManager.packagesPrefixes(agentInfo.id)
-                    agentManager.configurePackages(packages, agentInfo.id)
-                }
+                agentManager.sync(agentInfo, needSync)
                 val sslPort = app.securePort()
 
                 sendToTopic("/agent/config", ServiceConfig(sslPort))
@@ -54,6 +49,8 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
             }
         }
     }
+
+
 
     private fun DefaultWebSocketServerSession.retrieveParams(): Pair<AgentConfig, Boolean> {
         val agentConfig = Cbor.loads(AgentConfig.serializer(), call.request.headers[AgentConfigParam]!!)
