@@ -61,7 +61,7 @@ dependencies {
     implementation(ktor("locations"))
     implementation(ktor("server-core"))
     implementation(ktor("websockets"))
-    implementation(drill("drill-admin-part-jvm"))
+    implementation(drill("drill-admin-part-jvm", drillPluginApiVersion))
     implementation(drill("common-jvm", drillCommonLibVersion))
     implementation("com.hazelcast:hazelcast:3.12")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")

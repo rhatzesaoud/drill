@@ -4,6 +4,8 @@ val ktorVersion = "1.2.5"
 
 val drillCommonLibVersion = "0.1.3"
 
+val drillPluginApiVersion = "0.1.3"
+
 val jacocoVersion = "0.8.3"
 
 val vavrVersion = "0.10.0"
