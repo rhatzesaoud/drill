@@ -6,6 +6,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.serialization.Serializable
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
@@ -24,10 +25,18 @@ class RequestValidator(override val kodein: Kodein) : KodeinAware {
                     if (agentId != null) {
                         val agentInfo = am.getOrNull(agentId)
                         if (agentInfo?.status == null) {
-                            call.respond(HttpStatusCode.BadRequest, "Agent '$agentId' not found")
+                            call.respondText(
+                                ValidationResponse.serializer() stringify ValidationResponse("Agent '$agentId' not found"),
+                                ContentType.Application.Json,
+                                HttpStatusCode.BadRequest
+                            )
                             return@intercept finish()
                         } else if (agentInfo.status == AgentStatus.BUSY) {
-                            call.respond(HttpStatusCode.BadRequest, agentIsBusyMessage)
+                            call.respondText(
+                                ValidationResponse.serializer() stringify ValidationResponse(agentIsBusyMessage),
+                                ContentType.Application.Json,
+                                HttpStatusCode.BadRequest
+                            )
                             return@intercept finish()
                         }
 
@@ -38,3 +47,6 @@ class RequestValidator(override val kodein: Kodein) : KodeinAware {
     }
 
 }
+
+@Serializable
+data class ValidationResponse(val message: String)
