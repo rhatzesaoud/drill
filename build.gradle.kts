@@ -76,7 +76,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$jvmCoroutinesVersion")
                 implementation("com.epam.drill:common-jvm:$drillCommonLibVerison")
-                implementation("com.epam.drill:drill-agent-part-jvm:$version")
+                implementation("com.epam.drill:drill-agent-part-jvm:$drillPluginApiVersion")
             }
         }
         jvm("javaAgent").compilations["test"].defaultSourceSet {
@@ -89,7 +89,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
-                implementation("com.epam.drill:drill-agent-part:$version")
+                implementation("com.epam.drill:drill-agent-part:$drillPluginApiVersion")
                 implementation("com.epam.drill:common:$drillCommonLibVerison")
             }
         }
@@ -105,7 +105,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationNativeVersion")
                 implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-io-native:$kotlinxIoVersion")
-                implementation("com.epam.drill:drill-agent-part-native:$version") 
+                implementation("com.epam.drill:drill-agent-part-native:$drillPluginApiVersion")
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
                 implementation("com.epam.drill:common-native:$drillCommonLibVerison")
                 implementation(project(":util"))

@@ -20,7 +20,7 @@ kotlin {
         val commonNativeMain: KotlinSourceSet by creating {
             dependencies {
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
-                implementation("com.epam.drill:drill-agent-part-native:$version")
+                implementation("com.epam.drill:drill-agent-part-native:$drillPluginApiVersion")
             }
         }
         if (isDevMode) {
