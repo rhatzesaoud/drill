@@ -23,11 +23,7 @@ class PluginUnloadTest : AbstarctE2ETest() {
             messageType shouldBe MessageType.MESSAGE
             destination shouldBe "/agent/config"
             (ServiceConfig.serializer() parse data).sslPort shouldBe sslPort
-            register(
-                agentId,
-                AgentRegistrationInfo("xz", "ad", "sad"),
-                token
-            ).first shouldBe HttpStatusCode.OK
+            register(agentId, token).first shouldBe HttpStatusCode.OK
             queue.getAgent()?.status shouldBe AgentStatus.ONLINE
             queue.getAgent()?.status shouldBe AgentStatus.BUSY
             readSetPackages(agentInput, agentOutput)

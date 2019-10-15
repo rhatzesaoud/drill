@@ -19,7 +19,11 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import kotlinx.coroutines.channels.*
 
-fun TestApplicationEngine.register(agentId: String, payload: AgentRegistrationInfo, token: String) =
+fun TestApplicationEngine.register(
+    agentId: String,
+    token: String,
+    payload: AgentRegistrationInfo = AgentRegistrationInfo("xz", "ad", "sad")
+) =
     handleRequest(HttpMethod.Post, "/api" + application.locations.href(Routes.Api.Agent.RegisterAgent(agentId))) {
         addHeader(HttpHeaders.Authorization, "Bearer $token")
         setBody(AgentRegistrationInfo.serializer() stringify payload)
