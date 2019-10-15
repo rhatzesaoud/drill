@@ -2,20 +2,22 @@ package com.epam.drill.client
 
 import com.epam.drill.agentmanager.AgentInfoWebSocketSingle
 import com.epam.drill.agentmanager.toAgentInfoWebSocket
-import com.epam.drill.common.PluginId
-import com.epam.drill.common.stringify
+import com.epam.drill.common.*
 import com.epam.drill.endpoints.agent.AgentRegistrationInfo
 import com.epam.drill.router.Routes
 import com.epam.drill.testdata.agentId
 import com.epam.drill.testdata.ai
+import com.epam.drill.websockets.*
 import io.kotlintest.shouldBe
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.cio.websocket.*
 import io.ktor.locations.locations
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import kotlinx.coroutines.channels.*
 
 fun TestApplicationEngine.register(agentId: String, payload: AgentRegistrationInfo, token: String) =
     handleRequest(HttpMethod.Post, "/api" + application.locations.href(Routes.Api.Agent.RegisterAgent(agentId))) {
@@ -82,4 +84,14 @@ fun TestApplicationEngine.doHttpCall(token: String, exceptedStatus: HttpStatusCo
         }.run { response.status() }
 
     status shouldBe exceptedStatus
+}
+
+suspend fun readLoadClassesData(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) {
+    incoming.receive()
+    outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/agent/load-classes-data", ""))
+}
+
+suspend fun readSetPackages(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) {
+    incoming.receive()
+    outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/agent/set-packages-prefixes", ""))
 }

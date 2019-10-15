@@ -33,6 +33,7 @@ class ExampleAgentWsTest {
 
     @Test(timeout = 10000)
     fun `Main Example`() {
+        var coroutineException: Throwable? = null
         val handler = CoroutineExceptionHandler { _, exception ->
             coroutineException = exception
         }
