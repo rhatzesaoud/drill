@@ -2,6 +2,7 @@ package com.epam.drill.e2e
 
 import com.epam.drill.client.*
 import com.epam.drill.common.*
+import com.epam.drill.common.ws.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.testdata.*
 import io.kotlintest.*
@@ -21,7 +22,7 @@ abstract class AbstarctE2ETest {
     private val testApp = appConfig.testApp
 
 
-    fun startApp(block: suspend TestApplicationEngine.(ReceiveChannel<Frame>, SendChannel<Frame>, String) -> Unit) {
+    fun createSimpleAppWithAgentConnect(block: suspend TestApplicationEngine.(ReceiveChannel<Frame>, SendChannel<Frame>, String) -> Unit) {
         var coroutineException: Throwable? = null
         val handler = CoroutineExceptionHandler { _, exception ->
             coroutineException = exception
@@ -46,5 +47,12 @@ abstract class AbstarctE2ETest {
                 throw coroutineException as Throwable
             }
         }
+    }
+
+    suspend fun validateFirstResponseForAgent(agentInput: ReceiveChannel<Frame>) {
+        val (messageType, destination, data) = readAgentMessage(agentInput)
+        messageType shouldBe MessageType.MESSAGE
+        destination shouldBe "/agent/config"
+        (ServiceConfig.serializer() parse data).sslPort shouldBe sslPort
     }
 }

@@ -2,8 +2,6 @@ package com.epam.drill.e2e
 
 import com.epam.drill.client.*
 import com.epam.drill.common.*
-import com.epam.drill.common.ws.*
-import com.epam.drill.endpoints.agent.*
 import com.epam.drill.testdata.*
 import com.epam.drill.websockets.*
 import io.kotlintest.*
@@ -17,12 +15,9 @@ class PluginUnloadTest : AbstarctE2ETest() {
 
     @Test(timeout = 10000)
     fun `Plugin unload test`() {
-        startApp { agentInput, agentOutput, token ->
+        createSimpleAppWithAgentConnect { agentInput, agentOutput, token ->
             queue.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
-            val (messageType, destination, data) = readAgentMessage(agentInput)
-            messageType shouldBe MessageType.MESSAGE
-            destination shouldBe "/agent/config"
-            (ServiceConfig.serializer() parse data).sslPort shouldBe sslPort
+            validateFirstResponseForAgent(agentInput)
             register(agentId, token).first shouldBe HttpStatusCode.OK
             queue.getAgent()?.status shouldBe AgentStatus.ONLINE
             queue.getAgent()?.status shouldBe AgentStatus.BUSY
