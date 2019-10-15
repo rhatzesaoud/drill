@@ -1,9 +1,11 @@
 package com.epam.drill.endpoints
 
 import com.epam.drill.common.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import kotlin.test.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.handleRequest
+import kotlin.test.assertNotNull
 
 fun TestApplicationEngine.requestToken(): String {
     val token = handleRequest(HttpMethod.Post, "/api/login").run { response.headers[HttpHeaders.Authorization] }

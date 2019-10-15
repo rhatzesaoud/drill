@@ -24,6 +24,12 @@ class WsTopic(override val kodein: Kodein) : KodeinAware {
 
     fun resolve(destination: String): Any {
         if (pathToCallBackMapping.isEmpty()) return ""
+        val (callback, param) = getParams(destination)
+        val result = callback.resolve(param)
+        return result ?: ""
+    }
+
+    fun getParams(destination: String): Pair<CallbackWrapper<Any, Any>, Any> {
         val urlTokens = destination.split("/")
 
         val filter = pathToCallBackMapping.filter { it.key.count { c -> c == '/' } + 1 == urlTokens.size }.filter {
@@ -36,9 +42,9 @@ class WsTopic(override val kodein: Kodein) : KodeinAware {
             }
             matche
         }
-        val next = filter.iterator().next()
+        val suitableRout = filter.entries.first()
 
-        val parameters = next.run {
+        val parameters = suitableRout.run {
             val mutableMapOf = mutableMapOf<String, String>()
             key.split("/").forEachIndexed { x, y ->
                 if (y == urlTokens[x]) {
@@ -49,10 +55,10 @@ class WsTopic(override val kodein: Kodein) : KodeinAware {
             val map = mutableMapOf.map { Pair(it.key, listOf(it.value)) }
             parametersOf(* map.toTypedArray())
         }
-        val param = app.feature(Locations).resolve<Any>(next.value.first, parameters)
 
-        val result = next.value.second.resolve(param)
-        return result ?: ""
+        val (routeClass, callback) = suitableRout.value
+        return callback to app.feature(Locations).resolve(routeClass, parameters)
+
     }
 }
 
