@@ -1,6 +1,4 @@
 allprojects {
-    setupVersion()
-    
     repositories {
         mavenCentral()
         jcenter()
