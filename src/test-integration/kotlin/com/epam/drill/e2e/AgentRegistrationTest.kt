@@ -13,14 +13,14 @@ class AgentRegistrationTest : AbstarctE2ETest() {
     @Test(timeout = 10000)
     fun `Agent should be registered`() {
         createSimpleAppWithAgentConnect { agentInput, agentOutput, token ->
-            queue.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
+            ui.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
             validateFirstResponseForAgent(agentInput)
             register(agentId, token).first shouldBe HttpStatusCode.OK
-            queue.getAgent()?.status shouldBe AgentStatus.ONLINE
-            queue.getAgent()?.status shouldBe AgentStatus.BUSY
+            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+            ui.getAgent()?.status shouldBe AgentStatus.BUSY
             readSetPackages(agentInput, agentOutput)
             readLoadClassesData(agentInput, agentOutput)
-            queue.getAgent()?.status shouldBe AgentStatus.ONLINE
+            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
         }
     }
 

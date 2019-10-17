@@ -17,6 +17,7 @@ import io.ktor.locations.locations
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
 fun TestApplicationEngine.register(
@@ -93,6 +94,9 @@ fun TestApplicationEngine.doHttpCall(token: String, exceptedStatus: HttpStatusCo
 suspend fun readLoadClassesData(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) {
     incoming.receive()
     outgoing.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/agent/load-classes-data", ""))
+    outgoing.send(AgentMessage(MessageType.START_CLASSES_TRANSFER, "", ""))
+    outgoing.send(AgentMessage(MessageType.FINISH_CLASSES_TRANSFER, "", ""))
+    delay(500)
 }
 
 suspend fun readSetPackages(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) {

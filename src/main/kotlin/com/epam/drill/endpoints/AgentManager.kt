@@ -172,7 +172,7 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
 
     fun wrapBusy(ai: AgentInfo, block: suspend AgentInfo.() -> Unit) = app.launch {
-        awaitWithExpr(40.seconds, 300) { ai.status != AgentStatus.ONLINE }
+//        awaitWithExpr(40.seconds, 300) { ai.status != AgentStatus.ONLINE }
         ai.status = AgentStatus.BUSY
         ai.update(this@AgentManager)
         try {
@@ -193,11 +193,12 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     suspend fun resetAllPlugins(agentId: String) {
         getAllInstalledPluginBeanIds(agentId)?.forEach { pluginId ->
             agentSession(agentId)
-                ?.sendToTopic(
-                    "/plugins/resetPlugin",
-                    PluginId.serializer() stringify
-                            PluginId(pluginId)
-                )?.await()
+                ?.send(
+                    PluginId.serializer().agentWsMessage(
+                        "/plugins/resetPlugin",
+                        PluginId(pluginId)
+                    )
+                )
         }
     }
 

@@ -12,19 +12,19 @@ class ToggleAgentTest : AbstarctE2ETest() {
     @Test(timeout = 10000)
     fun `Toggle Agent Test`() {
         createSimpleAppWithAgentConnect { agentInput, agentOutput, token ->
-            queue.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
+            ui.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
             validateFirstResponseForAgent(agentInput)
             register(agentId, token).first shouldBe HttpStatusCode.OK
-            queue.getAgent()?.status shouldBe AgentStatus.ONLINE
-            queue.getAgent()?.status shouldBe AgentStatus.BUSY
+            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+            ui.getAgent()?.status shouldBe AgentStatus.BUSY
             readSetPackages(agentInput, agentOutput)
             readLoadClassesData(agentInput, agentOutput)
-            queue.getAgent()?.status shouldBe AgentStatus.ONLINE
+            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
 
             toggleAgent(agentId, token)
-            queue.getAgent()?.status shouldBe AgentStatus.OFFLINE
+            ui.getAgent()?.status shouldBe AgentStatus.OFFLINE
             toggleAgent(agentId, token)
-            queue.getAgent()?.status shouldBe AgentStatus.ONLINE
+            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
 
         }
     }

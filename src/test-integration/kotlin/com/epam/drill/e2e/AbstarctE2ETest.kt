@@ -17,7 +17,7 @@ import org.junit.rules.*
 abstract class AbstarctE2ETest {
     @get:Rule
     val projectDir = TemporaryFolder()
-    val queue = Channels()
+    val ui = AdminUiChannels()
     val appConfig = AppConfig(projectDir)
     private val testApp = appConfig.testApp
 
@@ -31,11 +31,12 @@ abstract class AbstarctE2ETest {
             val token = requestToken()
             //create the 'drill-admin-socket' websocket connection
             handleWebSocketConversation("/ws/drill-admin-socket?token=${token}") { uiIncoming, ut ->
-                application.queued(appConfig.wsTopic, queue, uiIncoming)
+                with(ui) { application.queued(appConfig.wsTopic, uiIncoming) }
                 //send subscribe event  to get agent status
                 ut.send(com.epam.drill.websockets.UiMessage(WsMessageType.SUBSCRIBE, "/get-agent/$agentId", ""))
                 ut.send(com.epam.drill.websockets.UiMessage(WsMessageType.SUBSCRIBE, "/$agentId/builds", ""))
-                queue.getAgent() shouldBe null
+                ui.getBuilds()
+                ui.getAgent() shouldBe null
                 application.launch(handler) {
                     //create the '/agent/attach' websocket connection
                     handleWebSocketConversation("/agent/attach", wsRequestRequiredParams()) { incoming, outgoing ->

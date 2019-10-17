@@ -1,33 +1,28 @@
 package com.epam.drill.client
 
-import com.epam.drill.agentmanager.AgentInfoWebSocket
-import com.epam.drill.agentmanager.AgentInfoWebSocketSingle
+import com.epam.drill.agentmanager.*
 import com.epam.drill.common.*
-import com.epam.drill.dataclasses.Notification
-import com.epam.drill.endpoints.WsTopic
-import com.epam.drill.plugins.PluginWebSocket
-import com.epam.drill.router.WsRoutes
-import io.ktor.application.Application
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readText
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.content
-import kotlinx.serialization.list
+import com.epam.drill.common.ws.*
+import com.epam.drill.dataclasses.*
+import com.epam.drill.endpoints.*
+import com.epam.drill.plugins.*
+import com.epam.drill.router.*
+import io.ktor.application.*
+import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
-class Channels {
+class AdminUiChannels {
 
-    val agentChannel = Channel<AgentInfoWebSocketSingle?>()
-    val agentBuildsChannel = Channel<Set<AgentBuildVersionJson>?>()
-    val buildsChannel = Channel<Set<BuildSummary>?>()
-    val agentsChannel = Channel<Set<AgentInfoWebSocket>?>()
-    val allPluginsChannel = Channel<Set<PluginWebSocket>?>()
-    val notificationsChannel = Channel<Set<Notification>?>()
-    val agentPluginInfoChannel = Channel<Set<PluginWebSocket>?>()
+    private val agentChannel = Channel<AgentInfoWebSocketSingle?>()
+    private val agentBuildsChannel = Channel<Set<AgentBuildVersionJson>?>()
+    private val buildsChannel = Channel<Set<BuildSummaryWebSocket>?>()
+    private val agentsChannel = Channel<Set<AgentInfoWebSocket>?>()
+    private val allPluginsChannel = Channel<Set<PluginWebSocket>?>()
+    private val notificationsChannel = Channel<Set<Notification>?>()
+    private val agentPluginInfoChannel = Channel<Set<PluginWebSocket>?>()
 
     suspend fun getAgent() = agentChannel.receive()
     suspend fun getAgentBuilds() = agentBuildsChannel.receive()
@@ -36,112 +31,87 @@ class Channels {
     suspend fun getAllPluginsInfo() = allPluginsChannel.receive()
     suspend fun getNotifications() = notificationsChannel.receive()
     suspend fun getAgentPluginInfo() = agentPluginInfoChannel.receive()
-}
 
-@UseExperimental(ExperimentalCoroutinesApi::class)
-fun Application.queued(wsTopic: WsTopic, queue: Channels, incoming: ReceiveChannel<Frame>) = this.launch {
-    incoming.consumeEach {
-        when (it) {
-            is Frame.Text -> {
-                val parseJson = json.parseJson(it.readText())
-                val url = (parseJson as JsonObject)[WsReceiveMessage::destination.name]!!.content!!
+    @UseExperimental(ExperimentalCoroutinesApi::class)
+    fun Application.queued(wsTopic: WsTopic, incoming: ReceiveChannel<Frame>) = this.launch {
+        incoming.consumeEach {
+            when (it) {
+                is Frame.Text -> {
+                    val parseJson = json.parseJson(it.readText()) as JsonObject
+                    val url = parseJson[WsReceiveMessage::destination.name]!!.content
+                    val content = parseJson[WsReceiveMessage::message.name]!!.toString()
+                    val (_, type) = wsTopic.getParams(url)
+                    this@queued.launch {
+                        val notEmptyResponse = content != "\"\""
+                        when (type) {
+                            is WsRoutes.GetAllAgents -> {
+                                if (notEmptyResponse) {
+                                    agentsChannel.send((AgentInfoWebSocket.serializer().set parse content))
+                                } else {
+                                    agentsChannel.send(null)
+                                }
+                            }
+                            is WsRoutes.GetAgent -> {
+                                if (notEmptyResponse) {
+                                    agentChannel.send(AgentInfoWebSocketSingle.serializer() parse content)
+                                } else {
+                                    agentChannel.send(null)
+                                }
+                            }
+                            is WsRoutes.GetAgentBuilds -> {
+                                if (notEmptyResponse) {
+                                    agentBuildsChannel.send((AgentBuildVersionJson.serializer().set parse content))
+                                } else {
+                                    agentBuildsChannel.send(null)
+                                }
+                            }
+                            is WsRoutes.GetAllPlugins -> {
+                                if (notEmptyResponse) {
+                                    allPluginsChannel.send((PluginWebSocket.serializer().set parse content))
+                                } else {
+                                    allPluginsChannel.send(null)
+                                }
+                            }
 
-                this@queued.apply {
-                    wsTopic {
-                        val (_, type) = getParams(url)
-                        launch {
-                            when (type) {
-                                is WsRoutes.GetAllAgents -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            setOf(AgentInfoWebSocket.serializer() parse content)
-                                        queue.agentsChannel.send(element)
-                                    } else {
-                                        queue.agentsChannel.send(null)
-                                    }
+                            is WsRoutes.GetBuilds -> {
+                                if (notEmptyResponse) {
+                                    buildsChannel.send((BuildSummaryWebSocket.serializer().set parse content))
+                                } else {
+                                    buildsChannel.send(null)
                                 }
-                                is WsRoutes.GetAgent -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            AgentInfoWebSocketSingle.serializer() parse content
-                                        queue.agentChannel.send(element)
-                                    } else {
-                                        queue.agentChannel.send(null)
-                                    }
-                                }
-                                is WsRoutes.GetAgentBuilds -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            setOf(AgentBuildVersionJson.serializer() parse content)
-                                        queue.agentBuildsChannel.send(element)
-                                    } else {
-                                        queue.agentBuildsChannel.send(null)
-                                    }
-                                }
-                                is WsRoutes.GetAllPlugins -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            setOf(PluginWebSocket.serializer() parse content)
-                                        queue.allPluginsChannel.send(element)
-                                    } else {
-                                        queue.allPluginsChannel.send(null)
-                                    }
-                                }
+                            }
 
-                                is WsRoutes.GetBuilds -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            (BuildSummary.serializer().list parse content).toSet()
-                                        queue.buildsChannel.send(element)
-                                    } else {
-                                        queue.buildsChannel.send(null)
-                                    }
+                            is WsRoutes.GetNotifications -> {
+                                if (notEmptyResponse) {
+                                    notificationsChannel.send(Notification.serializer().set parse content)
+                                } else {
+                                    notificationsChannel.send(null)
                                 }
+                            }
 
-                                is WsRoutes.GetNotifications -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            setOf(Notification.serializer() parse content)
-                                        queue.notificationsChannel.send(element)
-                                    } else {
-                                        queue.notificationsChannel.send(null)
-                                    }
-                                }
-
-                                is WsRoutes.GetPluginConfig -> {
-                                }
-                                is WsRoutes.GetPluginInfo -> {
-                                    val content =
-                                        parseJson[WsReceiveMessage::message.name]!!.toString()
-                                    if (content != "\"\"") {
-                                        val element =
-                                            setOf(PluginWebSocket.serializer() parse content)
-                                        queue.agentPluginInfoChannel.send(element)
-                                    } else {
-                                        queue.agentPluginInfoChannel.send(null)
-                                    }
-                                }
-                                else -> {
+                            is WsRoutes.GetPluginConfig -> {
+                            }
+                            is WsRoutes.GetPluginInfo -> {
+                                if (notEmptyResponse) {
+                                    agentPluginInfoChannel.send(PluginWebSocket.serializer().set parse content)
+                                } else {
+                                    agentPluginInfoChannel.send(null)
                                 }
                             }
                         }
                     }
                 }
+                else -> throw RuntimeException(" read not FRAME.TEXT frame.")
             }
-            else -> throw RuntimeException(" read not FRAME.TEXT frame.")
         }
-    }
 
+    }
 }
+
+class AgentChannels {
+
+    val serviceConfig = Channel<ServiceConfig?>()
+
+    suspend fun getServiceConfig() = serviceConfig.receive()
+}
+
