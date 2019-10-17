@@ -43,7 +43,8 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
                     "",
                     "",
                     pBuildVersion,
-                    ""
+                    "",
+                    buildVersions = mutableSetOf(AgentBuildVersionJson(pBuildVersion, ""))
                 )
         return agentStore.store(existingAgent)
     }
@@ -192,12 +193,11 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     suspend fun resetAllPlugins(agentId: String) {
         getAllInstalledPluginBeanIds(agentId)?.forEach { pluginId ->
             agentSession(agentId)
-                ?.send(
-                    PluginId.serializer().agentWsMessage(
-                        "/plugins/resetPlugin",
-                        PluginId(pluginId)
-                    )
-                )
+                ?.sendToTopic(
+                    "/plugins/resetPlugin",
+                    PluginId.serializer() stringify
+                            PluginId(pluginId)
+                )?.await()
         }
     }
 
