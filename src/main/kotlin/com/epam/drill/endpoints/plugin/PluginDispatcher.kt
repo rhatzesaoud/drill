@@ -21,7 +21,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
-import kotlin.collections.any
 import kotlin.collections.set
 
 class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
@@ -125,6 +124,24 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                     }
                     call.respond(statusCode, response)
                 }
+            }
+
+
+            get<Routes.Api.Agent.GetPluginData> { (agentId, pluginId, type) ->
+                val params = call.parameters.asMap()
+                val dp: Plugin? = plugins[pluginId]
+                val agentInfo = agentManager[agentId]
+                val (statusCode, response) = when {
+                    (dp == null) -> HttpStatusCode.NotFound to "plugin with id $pluginId not found"
+                    (agentInfo == null) -> HttpStatusCode.NotFound to "agent with id $agentId not found"
+                    else -> {
+                        val agentEntry = agentManager.full(agentId)
+                        val adminPart: AdminPluginPart<*> = fillPluginInstance(agentEntry, dp.pluginClass, pluginId)
+                        val response = adminPart.getPluginData(params)
+                        HttpStatusCode.OK to response
+                    }
+                }
+                call.respond(statusCode, response)
             }
 
             authenticate {
