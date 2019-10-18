@@ -127,7 +127,7 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
             }
 
 
-            get<Routes.Api.Agent.GetPluginData> { (agentId, pluginId, type) ->
+            get<Routes.Api.Agent.GetPluginData> { (agentId, pluginId) ->
                 val params = call.parameters.asMap()
                 val dp: Plugin? = plugins[pluginId]
                 val agentInfo = agentManager[agentId]
@@ -141,7 +141,11 @@ class PluginDispatcher(override val kodein: Kodein) : KodeinAware {
                         HttpStatusCode.OK to response
                     }
                 }
-                call.respond(statusCode, response)
+                call.respondText(
+                    response,
+                    ContentType.Application.Json,
+                    statusCode
+                )
             }
 
             authenticate {

@@ -41,7 +41,7 @@ object Routes {
             data class RenameBuildVersion(val agentId: String)
 
             @Location("/{agentId}/{pluginId}/get-data")
-            data class GetPluginData(val agentId: String, val pluginId: String, val type: String)
+            data class GetPluginData(val agentId: String, val pluginId: String)
         }
 
         @Location("/{agentId}/{pluginId}/reset")
