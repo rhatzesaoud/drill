@@ -24,8 +24,7 @@ class AgentEndpoints(override val kodein: Kodein) : KodeinAware {
         app.routing {
 
             authenticate {
-                post<Routes.Api.UpdateAgentConfig> { ll ->
-                    val agentId = ll.agentId
+                post<Routes.Api.UpdateAgentConfig> { (agentId) ->
                     if (agentManager.agentSession(agentId) != null) {
                         val au = call.parse(AgentInfoWebSocketSingle.serializer())
                         agentManager.updateAgent(agentId, au)
@@ -61,7 +60,14 @@ class AgentEndpoints(override val kodein: Kodein) : KodeinAware {
                                 buildVersions.add(AgentBuildVersionJson(bv, alias))
                             }
                         }
-                        agentManager.updateAgent(agentId, au)
+                        agInfo.apply {
+                            name = au.name
+                            groupName = au.group
+                            description = au.description
+                            buildAlias = au.buildVersions.firstOrNull { it.id == this.buildVersion }?.name ?: ""
+                            buildVersions.replaceAll(au.buildVersions)
+                            status = au.status
+                        }
                         agentManager.sync(agInfo, true)
                         call.respond(HttpStatusCode.OK, "Agent '$agentId' has been registered")
                     } else {

@@ -4,12 +4,15 @@ import io.ktor.application.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
 
-object AppBuilder {
+
+fun AppBuilder(handler: AppBuilder.() -> Unit): AppBuilder {
+    val appBuilder = AppBuilder()
+    handler(appBuilder)
+    return appBuilder
+}
+
+class AppBuilder {
     val kodeinModules = mutableSetOf<KodeinConf.() -> Kodein.Module>()
-    operator fun invoke(handler: AppBuilder.() -> Unit): AppBuilder {
-        handler(this)
-        return this
-    }
 
     fun Application.withInstallation(installHandler: Application.() -> Unit): AppBuilder {
         installHandler(this)

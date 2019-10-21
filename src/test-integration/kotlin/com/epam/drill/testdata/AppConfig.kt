@@ -1,21 +1,19 @@
 package com.epam.drill.testdata
 
-import com.epam.drill.endpoints.WsTopic
-import com.epam.drill.jwt.config.JwtConfig
+import com.epam.drill.*
+import com.epam.drill.endpoints.*
+import com.epam.drill.jwt.config.*
 import com.epam.drill.kodein.*
-import com.epam.drill.userSource
-import com.epam.kodux.StoreManger
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.jwt.jwt
-import io.ktor.config.MapApplicationConfig
-import io.ktor.locations.Locations
-import io.ktor.websocket.WebSockets
-import org.junit.rules.TemporaryFolder
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.eagerSingleton
-import org.kodein.di.generic.singleton
+import com.epam.kodux.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.config.*
+import io.ktor.locations.*
+import io.ktor.websocket.*
+import org.junit.rules.*
+import org.kodein.di.generic.*
+import java.util.*
 
 class AppConfig(var projectDir: TemporaryFolder) {
     lateinit var wsTopic: WsTopic
@@ -41,7 +39,7 @@ class AppConfig(var projectDir: TemporaryFolder) {
             withKModule { kodeinModule("wsHandler", wsHandler) }
             withKModule { kodeinModule("handlers", handlers) }
             withKModule { kodeinModule("pluginServices", pluginServices) }
-            val baseLocation = projectDir.newFolder("xs").resolve("agent")
+            val baseLocation = projectDir.newFolder(UUID.randomUUID().toString()).resolve("agent")
             withKModule {
                 kodeinModule("addition") {
                     bind<StoreManger>() with eagerSingleton {

@@ -1,45 +1,71 @@
 package com.epam.drill.e2e
 
-import com.epam.drill.client.*
 import com.epam.drill.common.*
 import com.epam.drill.testdata.*
-import com.epam.drill.websockets.*
 import io.kotlintest.*
-import io.kotlintest.matchers.types.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import org.apache.commons.codec.digest.*
 import org.junit.*
 
-class BuildsTest : AbstarctE2ETest() {
+class BuildsTest : AbstractE2ETest() {
 
     @Test(timeout = 10000)
-    fun `Builds should be 0`() {
-        createSimpleAppWithAgentConnect { agentInput, agentOutput, token ->
-            ui.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
-            validateFirstResponseForAgent(agentInput)
-            register(agentId, token).first shouldBe HttpStatusCode.OK
-            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
-            ui.getAgent()?.status shouldBe AgentStatus.BUSY
-            readSetPackages(agentInput, agentOutput)
-            readLoadClassesData(agentInput, agentOutput)
-            ui.getAgent()?.status shouldBe AgentStatus.ONLINE
-            addPlugin(agentId, pluginT2CM, token)
-            val pluginMetadata = PluginMetadata.serializer() parse (readAgentMessage(agentInput)).data
-            agentInput.receive().shouldBeInstanceOf<Frame.Binary> { pluginFile ->
-                DigestUtils.md5Hex(pluginFile.readBytes()) shouldBe pluginMetadata.md5Hash
+    fun `can add new builds and rename aliases`() {
+        createSimpleAppWithUIConnection(agentStreamDebug = true, uiStreamDebug = true) {
+            val aw = AgentWrap("ag1")
+            connectAgent(aw) { ui, agent ->
+                ui.getAgent()?.status shouldBe AgentStatus.NOT_REGISTERED
+                agent.getServiceConfig()?.sslPort shouldBe sslPort
+                register(aw.id).first shouldBe HttpStatusCode.OK
                 ui.getAgent()?.status shouldBe AgentStatus.BUSY
-                `should return BADREQUEST if BUSY`(token)
-                agentOutput.send(AgentMessage(MessageType.MESSAGE_DELIVERED, "/plugins/load", ""))
+                agent.`get-set-packages-prefixes`()
+                agent.`get-load-classes-data`()
                 ui.getAgent()?.status shouldBe AgentStatus.ONLINE
-                `should return OK if ONLINE`(token)
+                addPlugin(aw.id, pluginT2CM)
 
+                agent.getLoadedPlugin { metadata, file ->
+                    DigestUtils.md5Hex(file) shouldBe metadata.md5Hash
+                    ui.getAgent()?.status shouldBe AgentStatus.BUSY
+
+                }
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+                ui.getBuilds()?.size shouldBe 1
+
+            }.reconnect(aw.copy(buildVersion = "0.1.2")) { ui, agent ->
+                ui.getAgent()?.status shouldBe AgentStatus.BUSY
+                agent.getServiceConfig()?.sslPort shouldBe sslPort
+                agent.`get-set-packages-prefixes`()
+                agent.`get-load-classes-data`()
+                agent.getLoadedPlugin { metadata, file ->
+                    DigestUtils.md5Hex(file) shouldBe metadata.md5Hash
+                }
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+                ui.getBuilds()?.size shouldBe 2
+                renameBuildVersion(aw.id, payload = AgentBuildVersionJson("0.1.2", "wtf"))
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+                ui.getBuilds()?.size shouldBe 2
+                renameBuildVersion(aw.id, payload = AgentBuildVersionJson("0.1.2", "gwc"))
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+                ui.getBuilds()?.size shouldBe 2
+            }.reconnect(aw.copy(buildVersion = "0.1.3")) { ui, agent ->
+                ui.getAgent()?.status shouldBe AgentStatus.BUSY
+                agent.getServiceConfig()?.sslPort shouldBe sslPort
+                agent.`get-set-packages-prefixes`()
+                agent.`get-load-classes-data`()
+                agent.getLoadedPlugin { metadata, file ->
+                    DigestUtils.md5Hex(file) shouldBe metadata.md5Hash
+                }
+
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+                ui.getBuilds()?.size shouldBe 3
+                renameBuildVersion(aw.id, payload = AgentBuildVersionJson("0.1.3", "omg"))
+                ui.getAgent()?.status shouldBe AgentStatus.ONLINE
+
+                ui.getBuilds()?.size shouldBe 3
             }
-
-            ui.getBuilds()?.size shouldBe 0
-            ui.getBuilds()?.size shouldBe 1
         }
 
-
     }
+
 }
+

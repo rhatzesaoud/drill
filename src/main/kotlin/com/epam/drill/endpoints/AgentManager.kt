@@ -16,7 +16,6 @@ import mu.*
 import org.apache.commons.codec.digest.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
-import kotlin.time.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -172,7 +171,6 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
 
 
     fun wrapBusy(ai: AgentInfo, block: suspend AgentInfo.() -> Unit) = app.launch {
-//        awaitWithExpr(40.seconds, 300) { ai.status != AgentStatus.ONLINE }
         ai.status = AgentStatus.BUSY
         ai.update(this@AgentManager)
         try {

@@ -41,8 +41,8 @@ class DrillAdminEndpoints(override val kodein: Kodein) : KodeinAware {
                     }
                     drillAgent.send(
                         Frame.Text(
-                            WsSendMessage.serializer() stringify WsSendMessage(
-                                WsMessageType.MESSAGE,
+                            Message.serializer() stringify Message(
+                                MessageType.MESSAGE,
                                 "/plugins/unload",
                                 pluginId
                             )

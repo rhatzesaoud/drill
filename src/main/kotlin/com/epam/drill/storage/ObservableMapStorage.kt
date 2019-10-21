@@ -1,7 +1,9 @@
 package com.epam.drill.storage
 
+import java.util.concurrent.*
 
-class ObservableMapStorage<K, V, R>(val targetMap: MutableMap<K, V> = HashMap()) {
+
+class ObservableMapStorage<K, V, R>(val targetMap: MutableMap<K, V> = ConcurrentHashMap()) {
     val onUpdate: MutableSet<Pair<ObservableContext<R>, suspend R.((MutableMap<K, V>)) -> Unit>> = mutableSetOf()
     val onAdd: MutableSet<Pair<ObservableContext<R>, suspend R.(K, V) -> Unit>> = mutableSetOf()
     val onRemove: MutableSet<Pair<ObservableContext<R>, suspend R.(K) -> Unit>> = mutableSetOf()

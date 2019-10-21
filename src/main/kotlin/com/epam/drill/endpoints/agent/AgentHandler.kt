@@ -58,7 +58,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
         return agentConfig to needSync
     }
 
-    private suspend fun DefaultWebSocketServerSession.createWsLoop(agentInfo: AgentInfo) {
+    private suspend fun AgentWsSession.createWsLoop(agentInfo: AgentInfo) {
         try {
             incoming.consumeEach { frame ->
                 if (frame is Frame.Text) {

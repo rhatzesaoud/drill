@@ -97,7 +97,7 @@ class ServerWsTopics(override val kodein: Kodein) : KodeinAware {
                         agentManager.getOrNull(agentId)?.buildVersions ?: emptySet()
                     agentManager.adminData(agentId).buildManager.summaries.map { summary ->
                         summary.toWebSocketSummary(agentBuilds)
-                    }
+                    }.sortedByDescending { it.addedDate }
                 }
             }
 
