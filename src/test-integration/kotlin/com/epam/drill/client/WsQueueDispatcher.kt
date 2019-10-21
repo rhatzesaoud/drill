@@ -9,6 +9,7 @@ import com.epam.drill.plugins.*
 import com.epam.drill.router.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
@@ -117,7 +118,8 @@ class UIEVENTLOOP(val cs: Map<String, AdminUiChannels>, val uiStreamDebug: Boole
                         }
                     }
                 }
-                is Frame.Close -> {}
+                is Frame.Close -> {
+                }
                 else -> throw RuntimeException(" read not FRAME.TEXT frame.")
             }
         }
@@ -161,7 +163,7 @@ class Agent(
         return receive
     }
 
-    suspend fun `get-load-classes-data`(): String {
+    suspend fun `get-load-classes-data`(vararg classes: String = emptyArray()): String {
         val receive = `load-classes-data`.receive()
         outgoing.send(
             AgentMessage(
@@ -171,8 +173,22 @@ class Agent(
             )
         )
         outgoing.send(AgentMessage(MessageType.START_CLASSES_TRANSFER, "", ""))
+
+
+        classes.forEach {
+            outgoing.send(
+                AgentMessage(
+                    MessageType.CLASSES_DATA, "", Base64Class.serializer() stringify Base64Class(
+                        "org/springframework/samples/petclinic/$it",
+                        this::class.java.getResourceAsStream("/classes/$it").readBytes().encodeBase64()
+                    )
+                )
+            )
+        }
+
+
         outgoing.send(AgentMessage(MessageType.FINISH_CLASSES_TRANSFER, "", ""))
-        delay(500)
+//        delay(500)
         return receive
     }
 
