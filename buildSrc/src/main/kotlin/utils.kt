@@ -18,7 +18,8 @@ private fun Project.calculateProjectVersion() = object {
     val tagVersionRegex = Regex("refs/tags/v(\\d+)\\.(\\d+)\\.(\\d+)")
 
     override fun toString(): String {
-        val git = Git.wrap(FileRepository(this@calculateProjectVersion.rootDir.resolve(".git")))
+        val resolve = this@calculateProjectVersion.rootProject.rootDir.resolve(".git")
+        val git = Git.wrap(FileRepository(resolve))
         val lastTag = git.tagList().call().last { tagVersionRegex.matches(it.name) }
         val (_, major, minor, patch) = tagVersionRegex.matchEntire(lastTag.name)!!.groupValues
         val commitDistance = git.log()
@@ -47,7 +48,7 @@ fun Project.setupVersion() {
         val generateVersionJson by registering {
             group = "versioning"
             val versionFile = buildDir.resolve("version.json")
-            inputs.dir(".git")
+            inputs.dir(this@setupVersion.rootProject.rootDir.resolve(".git"))
             outputs.file(versionFile)
             doLast {
                 val versionInfo = VersionInfo(

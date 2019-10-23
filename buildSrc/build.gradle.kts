@@ -6,7 +6,6 @@ repositories {
     maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
     jcenter()
 }
-
 val kotlinVersion = "1.3.50"
 val atomicFuVersion = "0.12.6"
 dependencies {
