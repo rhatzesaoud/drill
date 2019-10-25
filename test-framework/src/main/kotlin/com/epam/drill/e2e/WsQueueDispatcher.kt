@@ -5,8 +5,11 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.dataclasses.*
 import com.epam.drill.endpoints.*
+import com.epam.drill.plugin.api.message.*
 import com.epam.drill.plugins.*
 import com.epam.drill.router.*
+import com.sun.org.apache.bcel.internal.classfile.*
+import com.sun.org.apache.bcel.internal.util.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
@@ -14,6 +17,13 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import java.io.*
+
+abstract class PluginStreams() {
+    lateinit var app: Application
+    lateinit var info: PluginTestContext
+    abstract fun queued(incoming: ReceiveChannel<Frame>, out: SendChannel<Frame>)
+}
 
 
 class AdminUiChannels {
@@ -148,6 +158,15 @@ class Agent(
 
     }
 
+    suspend fun sendPluginData(data: MessageWrapper) {
+        outgoing.send(
+            AgentMessage(
+                MessageType.PLUGIN_DATA, "",
+                MessageWrapper.serializer() stringify data
+            )
+        )
+    }
+
     suspend fun getPluginBinary() = pluginBinary.receive()
     suspend fun `get-set-packages-prefixes`(): String {
         val receive = `set-packages-prefixes`.receive()
@@ -163,22 +182,20 @@ class Agent(
 
     suspend fun `get-load-classes-data`(vararg classes: String = emptyArray()): String {
         val receive = `load-classes-data`.receive()
-        outgoing.send(
-            AgentMessage(
-                MessageType.MESSAGE_DELIVERED,
-                "/agent/load-classes-data",
-                ""
-            )
-        )
+
         outgoing.send(AgentMessage(MessageType.START_CLASSES_TRANSFER, "", ""))
 
 
         classes.forEach {
+
+            val readBytes = this::class.java.getResourceAsStream("/classes/$it").readBytes()
+            val parse = ClassParser(ByteArrayInputStream(readBytes), "").parse()
+
             outgoing.send(
                 AgentMessage(
                     MessageType.CLASSES_DATA, "", Base64Class.serializer() stringify Base64Class(
-                        "org/springframework/samples/petclinic/$it",
-                        this::class.java.getResourceAsStream("/classes/$it").readBytes().encodeBase64()
+                        parse.className.replace(".", "/"),
+                        readBytes.encodeBase64()
                     )
                 )
             )
@@ -187,6 +204,13 @@ class Agent(
 
         outgoing.send(AgentMessage(MessageType.FINISH_CLASSES_TRANSFER, "", ""))
 //        delay(500)
+        outgoing.send(
+            AgentMessage(
+                MessageType.MESSAGE_DELIVERED,
+                "/agent/load-classes-data",
+                ""
+            )
+        )
         return receive
     }
 
@@ -210,6 +234,8 @@ class Agent(
                             "/agent/load-classes-data" -> `load-classes-data`.send(content)
                             "/plugins/load" -> plugins.send(PluginMetadata.serializer() parse content)
                             "/plugins/resetPlugin" -> {
+                            }
+                            "/plugins/action" -> {
                             }
                             else -> TODO("$url is not implemented yet")
                         }

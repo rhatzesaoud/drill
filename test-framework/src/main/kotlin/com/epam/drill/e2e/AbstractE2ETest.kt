@@ -104,7 +104,7 @@ abstract class AbstractE2ETest {
     }
 
 
-    fun reconnect(ags: AgentWrap, bl: suspend TestApplicationEngine.(AdminUiChannels, Agent) -> Unit): AbstractE2ETest {
+    fun newConnect(ags: AgentWrap, bl: suspend TestApplicationEngine.(AdminUiChannels, Agent) -> Unit): AbstractE2ETest {
         agents[ags.id]?.third?.add(ags to bl)
         return this
     }
