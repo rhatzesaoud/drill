@@ -262,15 +262,14 @@ data class PluginTestContext(
         agentId: String = this.agentId,
         token: String = this.token
 
-    ) {
-        engine.handleRequest(
+    ) = engine.handleRequest(
             HttpMethod.Post,
             "/api" + engine.application.locations.href(Routes.Api.Agent.DispatchPluginAction(agentId, pluginId))
         ) {
             addHeader(HttpHeaders.Authorization, "Bearer $token")
             setBody(payload)
         }.run { response.status() to response.content }
-    }
+
 }
 
 
