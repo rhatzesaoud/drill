@@ -60,6 +60,13 @@ class DI {
         }
 
 
+        @Suppress("UNCHECKED_CAST")
+        operator fun <P1, P2, P3, P4, P5, P6, R> get(targetFunction: KFunction6<P1, P2, P3, P4, P5, P6, R>): CPointer<CFunction<(P1, P2, P3, P4, P5, P6) -> R>> {
+            val cPointer = misfeatureToFunctionDictionary[targetFunction]
+            return cPointer as CPointer<CFunction<(P1, P2, P3, P4, P5, P6) -> R>>
+        }
+
+
     }
 
 }

@@ -39,7 +39,7 @@ private fun runAgent(options: String?) {
 
         printAllowedCapabilities()
         AddCapabilities(GetPotentialCapabilities())
-        AddToSystemClassLoaderSearch("$drillInstallationDir/drillRuntime.jar")
+        AddToBootstrapClassLoaderSearch("$drillInstallationDir/drillRuntime.jar")
         SetNativeMethodPrefix("xxx_")
         callbackRegister()
 

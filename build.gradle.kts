@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -9,6 +10,7 @@ plugins {
     id("kotlinx-serialization")
     distribution
     `maven-publish`
+    id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 val gccIsNeeded = (project.property("gccIsNeeded") as String).toBoolean()
 
@@ -77,6 +79,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$jvmCoroutinesVersion")
                 implementation("com.epam.drill:common-jvm:$drillCommonLibVerison")
                 implementation("com.epam.drill:drill-agent-part-jvm:$drillPluginApiVersion")
+                implementation("com.alibaba:transmittable-thread-local:2.11.0")
             }
         }
         jvm("javaAgent").compilations["test"].defaultSourceSet {
@@ -124,8 +127,17 @@ tasks.withType<KotlinNativeCompile> {
 
 tasks {
 
-    named<Jar>("javaAgentJar") {
+    val agentShadow by registering(ShadowJar::class) {
+        mergeServiceFiles()
+        isZip64 = true
+        relocate("kotlin", "kruntime")
+//        relocate("kotlinx", "mykotlinx")
         archiveFileName.set("drillRuntime.jar")
+        from(javaAgentJar)
+    }
+
+    named<Jar>("javaAgentJar") {
+        archiveFileName.set("drillRuntime-temp.jar")
         from(provider {
             kotlin.targets["javaAgent"].compilations["main"].compileDependencyFiles.map {
                 if (it.isDirectory) it else zipTree(it)
@@ -180,6 +192,7 @@ tasks {
 
 
 val javaAgentJar: Jar by tasks
+val agentShadow: ShadowJar by tasks
 
 afterEvaluate {
     val availableTarget = nativeTargets.filter { HostManager().isEnabled(it.konanTarget) }
@@ -190,7 +203,8 @@ afterEvaluate {
             create(name) {
                 baseName = name
                 contents {
-                    from(javaAgentJar)
+                    from(tasks.getByPath(":proxy-agent:jar"))
+                    from(agentShadow)
                     from(tasks.getByPath("link${libName.capitalize()}DebugShared${name.capitalize()}"))
                 }
             }

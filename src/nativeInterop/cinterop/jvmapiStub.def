@@ -8,3 +8,7 @@ int checkEx(int errCode, char* fname){
 void* jvmtii(){
     return 0;
 }
+
+void* currentEnvs(){
+    return 0;
+}

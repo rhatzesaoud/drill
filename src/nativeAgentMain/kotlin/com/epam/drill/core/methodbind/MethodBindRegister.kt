@@ -50,6 +50,22 @@ val nativeMethodBindMapper =
                 originalMethod.misfeatureToFunctionDictionary[::read0] = reinterpret
                 staticCFunction(::read0)
             }
+        },
+
+        Netty + ::readAddress.name to { initialMethod: COpaquePointer ->
+            exec {
+                val reinterpret = initialMethod.reinterpret<CFunction<*>>()
+                originalMethod.misfeatureToFunctionDictionary[::readAddress] = reinterpret
+                staticCFunction(::readAddress)
+            }
+        }
+        ,
+        Netty + ::writeAddress.name to { initialMethod: COpaquePointer ->
+            exec {
+                val reinterpret = initialMethod.reinterpret<CFunction<*>>()
+                originalMethod.misfeatureToFunctionDictionary[::writeAddress] = reinterpret
+                staticCFunction(::writeAddress)
+            }
         }
     )
 

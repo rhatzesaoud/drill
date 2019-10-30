@@ -10,6 +10,6 @@ val kotlinxIoVersion = "0.1.14"
 
 val drillCommonLibVerison = "0.1.3"
 
-val drillPluginApiVersion = "0.1.3"
+val drillPluginApiVersion = "0.1.8"
 
 val drillJvmApiLibVerison = "0.1.0"
