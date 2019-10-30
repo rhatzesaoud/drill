@@ -1,10 +1,10 @@
 package com.epam.drill.session
 
+import com.epam.drill.plugin.DrillRequest
+
 object DrillRequest {
+    lateinit var threadStorage: InheritableThreadLocal<DrillRequest>
 
-    external fun currentSession(): String?
-
-    external operator fun get(key: String): String?
     fun RetransformClasses(classes: Array<Class<*>>) {
         RetransformClasses(classes.size, classes)
 

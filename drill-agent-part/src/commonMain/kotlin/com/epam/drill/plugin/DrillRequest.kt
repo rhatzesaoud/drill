@@ -17,7 +17,7 @@ const val HOST = "host"
 const val DRILL_SESSION_ID = "drill-session-id"
 
 fun parseHttpRequest(request: RawHttpRequest): HttpRequest {
-    val reader = request.lineSequence()
+    val reader = request.lineSequence().takeWhile { it.isNotBlank() }
     val query = reader.first().toRequestQuery()
     val requestHeaders = parseHeaders(reader.drop(1))
     val cookies = parseCookies(requestHeaders)
