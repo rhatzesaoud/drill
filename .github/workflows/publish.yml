@@ -13,12 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Check
-        run: ./gradlew -si --no-daemon check
+        run: gradle -si --no-daemon check
       - name: Publish
         run: |
-          ./gradlew -s -i check
-          ./gradlew -s -i publishMacosX64ZipPublicationToMavenRepository
-          ./gradlew -s -i publishLinuxX64ZipPublicationToMavenRepository
+          gradle -s -i check
+          gradle -s -i publishMacosX64ZipPublicationToMavenRepository
+          gradle -s -i publishLinuxX64ZipPublicationToMavenRepository
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
@@ -29,12 +29,12 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build & Test
         run: |
-          gradlew -si --no-daemon build mingwX64Test
+          gradle -si --no-daemon build mingwX64Test
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
       - name: Publish
         run: |
-          gradlew --no-daemon -s -i publishMingwX64ZipPublicationToMavenRepository
+          gradle --no-daemon -s -i publishMingwX64ZipPublicationToMavenRepository
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
