@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
     implementation("com.alibaba:transmittable-thread-local:2.11.0")
 }
 
