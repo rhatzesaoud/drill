@@ -7,3 +7,5 @@ import kotlinx.cinterop.*
 fun doMkdir(path:String){
     mkdir(path, "0777".toInt(8).convert())
 }
+
+val tempPath = "/tmp"

@@ -164,11 +164,14 @@ private fun generateNativePluginPath(id: String): String {
     //fixme do generate Native path
     return "$id/native_plugin.os_lib"
 }
+
 private fun generatePluginPath(id: String): String {
     val ajar = "agent-part.jar"
-    val pluginsDir = "$drillInstallationDir/drill-plugins"
+    val pluginsDir = "${if (tempPath.isEmpty()) drillInstallationDir else tempPath}/drill-plugins"
     doMkdir(pluginsDir)
-    val pluginDir = "$pluginsDir/$id"
+    var pluginDir = "$pluginsDir/$id"
+    doMkdir(pluginDir)
+    pluginDir = "$pluginDir/${exec { agentConfig.id }}"
     doMkdir(pluginDir)
     val path = "$pluginDir/$ajar"
     return path

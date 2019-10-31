@@ -48,7 +48,7 @@ fun startWs() =
                     websocket(exec { adminAddress.toString() })
                 }
             } catch (ex: Exception) {
-                println(ex.message + "\ntry reconnect\n")
+//                println(ex.message + "\ntry reconnect\n")
             }
         }
     }
@@ -56,7 +56,7 @@ fun startWs() =
 
 suspend fun websocket(adminUrl: String) {
     val url = "$adminUrl/agent/attach"
-    wsLogger.debug { "try to create websocket $url" }
+//    wsLogger.debug { "try to create websocket $url" }
     val wsClient = RWebsocketClient(
         url = url,
         protocols = emptyList(),

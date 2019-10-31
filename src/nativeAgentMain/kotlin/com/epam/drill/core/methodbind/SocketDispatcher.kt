@@ -121,7 +121,7 @@ fun writeAddress(
     val fakeLength: jint
     val fakeBuffer: DirectBufferAddress
     val prefix = address.rawString(min(4, limit))
-    if (prefix == "HTTP") {
+    if (prefix == "HTTP" || prefix == "POST" || prefix == "GET ") {
         val spyHeaders = exec {
             val adminUrl = if (::secureAdminAddress.isInitialized) {
                 secureAdminAddress.toUrlString(false)
