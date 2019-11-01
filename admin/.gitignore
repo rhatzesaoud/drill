@@ -2,7 +2,7 @@ admin/work
 /work
 /.idea/
 /.gradle/
-/*/.gradle/
+/.gradle/
 /build/
 /*/build/
 /distr/

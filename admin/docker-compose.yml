@@ -3,7 +3,7 @@ version: '3'
 services:
   drill-admin:
     build:
-      context: ..
+      context: ../..
       dockerfile: drill-admin/Dockerfile
     ports:
       - 8090:8090
