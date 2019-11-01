@@ -3,7 +3,7 @@ package com.epam.drill.agent
 import com.alibaba.ttl.threadpool.agent.*
 import java.lang.instrument.*
 
-fun premain(@Suppress("UNUSED_PARAMETER") args: String, instrumentation: Instrumentation) {
-    TtlAgent.premain("", instrumentation)
+fun premain(args: String?, instrumentation: Instrumentation) {
+    TtlAgent.premain(args ?: "", instrumentation)
     println("Ttl agent is attached")
 }

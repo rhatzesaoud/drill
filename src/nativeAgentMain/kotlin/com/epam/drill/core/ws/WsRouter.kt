@@ -7,6 +7,7 @@ import com.epam.drill.core.*
 import com.epam.drill.core.agent.*
 import com.epam.drill.core.messanger.*
 import com.epam.drill.core.plugin.loader.*
+import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.logger.*
 import com.epam.drill.plugin.*
 import com.epam.drill.plugin.api.processing.*
@@ -90,6 +91,13 @@ fun topicRegister() =
         topic("/agent/config").withGenericTopic(ServiceConfig.serializer()) { sc ->
             topicLogger.info { "Agent got a system config: $sc" }
             exec { secureAdminAddress = adminAddress.copy(scheme = "https", defaultPort = sc.sslPort.toInt()) }
+            val requestHolderClass = FindClass("com/epam/drill/ws/RequestHolder")
+            @Suppress("UNUSED_VARIABLE") val selfMethodId: jfieldID? =
+                GetStaticFieldID(requestHolderClass, "INSTANCE", "Lcom/epam/drill/ws/RequestHolder;")
+            val requestHolder: jobject? = GetStaticObjectField(requestHolderClass, selfMethodId)
+            val retrieveClassesData: jmethodID? =
+                GetMethodID(requestHolderClass, "storeSessionId", "(Ljava/lang/String;)V")
+            CallVoidMethod(requestHolder, retrieveClassesData, NewStringUTF(sc.headerName))
         }
 
         topic("/plugins/unload").rawMessage { pluginId ->

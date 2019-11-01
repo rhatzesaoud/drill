@@ -3,6 +3,7 @@
 package com.epam.drill.core.methodbind
 
 import com.epam.drill.core.*
+import com.epam.drill.jvmapi.*
 import com.epam.drill.jvmapi.gen.*
 import kotlinx.cinterop.*
 import kotlinx.serialization.*
@@ -42,7 +43,8 @@ private fun read(retVal: Int, address: DirectBufferAddress) {
 
 private fun defineHttp1RequestType(prefix: String, address: DirectBufferAddress, retVal: Int) {
     try {
-        if (prefix.startsWith("OPTIONS ") ||
+        if (prefix.startsWith("HTTP") ||
+            prefix.startsWith("OPTIONS ") ||
             prefix.startsWith("GET ") ||
             prefix.startsWith("HEAD ") ||
             prefix.startsWith("POST ") ||
@@ -61,13 +63,23 @@ private fun defineHttp1RequestType(prefix: String, address: DirectBufferAddress,
 }
 
 fun fillRequestToHolder(@Suppress("UNUSED_PARAMETER") request: String) {
-    val requestHolderClass = FindClass("com/epam/drill/ws/RequestHolder")
-    @Suppress("UNUSED_VARIABLE") val selfMethodId: jfieldID? =
-        GetStaticFieldID(requestHolderClass, "INSTANCE", "Lcom/epam/drill/ws/RequestHolder;")
-    val requestHolder: jobject? = GetStaticObjectField(requestHolderClass, selfMethodId)
-    val retrieveClassesData: jmethodID? =
-        GetMethodID(requestHolderClass, "storeRequest", "(Ljava/lang/String;)V")
+    val (requestHolderClass, requestHolder: jobject?) = instance("com/epam/drill/ws/RequestHolder")
+    val retrieveClassesData = GetMethodID(requestHolderClass, "storeRequest", "(Ljava/lang/String;)V")
     CallVoidMethod(requestHolder, retrieveClassesData, NewStringUTF(request))
+}
+
+fun sessionId(): String? {
+    val (requestHolderClass, requestHolder: jobject?) = instance("com/epam/drill/ws/RequestHolder")
+    val retrieveClassesData = GetMethodID(requestHolderClass, "sessionId", "()Ljava/lang/String;")
+    val jRawString = CallObjectMethod(requestHolder, retrieveClassesData) ?: return null
+    return jRawString.toKString()
+}
+
+private fun instance(name: String): Pair<jclass?, jobject?> {
+    val requestHolderClass = FindClass(name)
+    val selfMethodId: jfieldID? = GetStaticFieldID(requestHolderClass, "INSTANCE", "L$name;")
+    val requestHolder: jobject? = GetStaticObjectField(requestHolderClass, selfMethodId)
+    return Pair(requestHolderClass, requestHolder)
 }
 
 fun readv0(env: CPointer<JNIEnvVar>, obj: jobject, fd: jobject, address: DirectBufferAddress, len: jint): Int =
@@ -75,19 +87,35 @@ fun readv0(env: CPointer<JNIEnvVar>, obj: jobject, fd: jobject, address: DirectB
 
 
 fun write0(env: CPointer<JNIEnvVar>, obj: jobject, fd: jobject, address: DirectBufferAddress, len: jint): jint {
+    return write(address, len) { fb, finalLen ->
+        exec { originalMethod[::write0] }(env, obj, fd, fb, finalLen)
+    }
+}
+
+fun writeAddress(env: CPointer<JNIEnvVar>, clazz: jclass, fd: jint, address: jlong, pos: jint, len: jint): jint {
+    return write(address, len) { fb, finalLen ->
+        exec { originalMethod[::writeAddress] }(env, clazz, fd, fb, pos, finalLen)
+    }
+}
+
+fun write(address: DirectBufferAddress, len: jint, block: (DirectBufferAddress, jint) -> jint): Int {
     initRuntimeIfNeeded()
     val fakeLength: jint
     val fakeBuffer: DirectBufferAddress
     val prefix = address.rawString(min(4, len))
     if (prefix == "HTTP" || prefix == "POST" || prefix == "GET ") {
+        val sessionId = sessionId()
         val spyHeaders = exec {
             val adminUrl = if (::secureAdminAddress.isInitialized) {
                 secureAdminAddress.toUrlString(false)
             } else adminAddress.toUrlString(false)
-            "\ndrill-agent-id: ${agentConfig.id}\ndrill-admin-url: $adminUrl\nsession-id: hj"
+            "\ndrill-agent-id: ${agentConfig.id}\ndrill-admin-url: $adminUrl\ndrill-session-id: ${sessionId
+                ?: "empty"}"
         }
         val contentBodyBytes = address.toPointer().toKStringFromUtf8()
-        return if (contentBodyBytes.contains("text/html") || contentBodyBytes.contains("application/json")) {
+        if (contentBodyBytes.contains("text/html")
+            || contentBodyBytes.contains("application/json")
+            || contentBodyBytes.contains("text/plain")) {
             val replaceFirst = contentBodyBytes.replaceFirst("\n", "$spyHeaders\n")
             val toUtf8Bytes = replaceFirst.toUtf8Bytes()
             val refTo = toUtf8Bytes.refTo(0)
@@ -95,58 +123,13 @@ fun write0(env: CPointer<JNIEnvVar>, obj: jobject, fd: jobject, address: DirectB
             fakeBuffer = refTo.getPointer(scope).toLong()
             val additionalSize = spyHeaders.toUtf8Bytes().size
             fakeLength = len + additionalSize
-            println("write0: " + replaceFirst.lines())
-            exec { originalMethod[::write0] }(env, obj, fd, fakeBuffer, fakeLength)
+            block(fakeBuffer, fakeLength)
             scope.clear()
-            len
         } else {
-            exec { originalMethod[::write0] }(env, obj, fd, address, len)
-            len
+            block(address, len)
         }
     } else {
-        exec { originalMethod[::write0] }(env, obj, fd, address, len)
-        return len
+        block(address, len)
     }
-}
-
-fun writeAddress(
-    env: CPointer<JNIEnvVar>,
-    clazz: jclass,
-    fd: jint,
-    address: jlong,
-    pos: jint,
-    limit: jint
-): jint {
-    initRuntimeIfNeeded()
-    val fakeLength: jint
-    val fakeBuffer: DirectBufferAddress
-    val prefix = address.rawString(min(4, limit))
-    if (prefix == "HTTP" || prefix == "POST" || prefix == "GET ") {
-        val spyHeaders = exec {
-            val adminUrl = if (::secureAdminAddress.isInitialized) {
-                secureAdminAddress.toUrlString(false)
-            } else adminAddress.toUrlString(false)
-            "\ndrill-agent-id: ${agentConfig.id}\ndrill-admin-url: $adminUrl"
-        }
-        val contentBodyBytes = address.toPointer().toKStringFromUtf8()
-        return if (contentBodyBytes.contains("text/html") || contentBodyBytes.contains("application/json")) {
-            val replaceFirst = contentBodyBytes.replaceFirst("\n", "$spyHeaders\n")
-            val toUtf8Bytes = replaceFirst.toUtf8Bytes()
-            val refTo = toUtf8Bytes.refTo(0)
-            val scope = Arena()
-            fakeBuffer = refTo.getPointer(scope).toLong()
-            val additionalSize = spyHeaders.toUtf8Bytes().size
-            println("writeAddress: " + replaceFirst.lines())
-            fakeLength = limit + additionalSize
-            exec { originalMethod[::writeAddress] }(env, clazz, fd, fakeBuffer, pos, fakeLength)
-            scope.clear()
-            limit
-        } else {
-            exec { originalMethod[::writeAddress] }(env, clazz, fd, address, pos, limit)
-            limit
-        }
-    } else {
-        exec { originalMethod[::writeAddress] }(env, clazz, fd, address, pos, limit)
-        return limit
-    }
+    return len
 }
