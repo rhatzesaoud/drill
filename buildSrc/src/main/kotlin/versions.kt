@@ -2,9 +2,9 @@ val serializationRuntimeVersion = "0.12.0"
 
 val ktorVersion = "1.2.5"
 
-val drillCommonLibVersion = "0.1.3"
+val drillCommonLibVersion = "0.1.4"
 
-val drillPluginApiVersion = "0.1.7"
+val drillPluginApiVersion = "0.1.8"
 
 val jacocoVersion = "0.8.3"
 
