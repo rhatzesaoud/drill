@@ -52,6 +52,7 @@ fun AgentInfo.toAgentInfoWebSocket() = AgentInfoWebSocketSingle(
     ipAddress = ipAddress,
     activePluginsCount = plugins.activePluginsCount(),
     pluginsCount = plugins.size,
+    sessionIdHeaderName = sessionIdHeaderName,
     rawPluginsName = plugins.toPluginsWebSocket(),
     buildVersions = this.buildVersions
 )

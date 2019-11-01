@@ -30,7 +30,7 @@ dependencies {
     implementation(ktor("server-test-host"))
     implementation("com.epam.drill:kodux-jvm:0.1.1")
     implementation("org.kodein.di:kodein-di-generic-jvm:6.2.0")
-    api(project(":admin"))
+    api(project(":core"))
 }
 tasks {
 

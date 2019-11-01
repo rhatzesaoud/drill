@@ -182,11 +182,13 @@ publishing {
     }
 
     publications {
-        create<MavenPublication>("admin") {
+        create<MavenPublication>("adminFull") {
             artifact(tasks["shadowJar"])
+            artifactId = "admin-core"
         }
-        create<MavenPublication>("admin-core") {
+        create<MavenPublication>("admin") {
             artifact(tasks["jar"])
+            artifactId = "admin-core"
         }
     }
 }
