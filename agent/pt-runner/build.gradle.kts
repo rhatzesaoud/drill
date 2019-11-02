@@ -41,8 +41,8 @@ dependencies {
 tasks {
     named("run") {
         if (isDevMode)
-            dependsOn(rootProject.tasks.getByPath("installNativeAgentDist"))
+            dependsOn(rootProject.tasks.getByPath(":agent:installNativeAgentDist"))
         else
-            dependsOn(rootProject.tasks.getByPath("install${target.capitalize()}Dist"))
+            dependsOn(rootProject.tasks.getByPath(":agent:install${target.capitalize()}Dist"))
     }
 }

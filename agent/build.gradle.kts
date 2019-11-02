@@ -23,8 +23,6 @@ allprojects {
         mavenLocal()
         maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
         maven(url = "https://dl.bintray.com/kotlin/ktor/")
-        if (version.toString().endsWith("-SNAPSHOT"))
-            maven(url = "https://oss.jfrog.org/artifactory/list/oss-snapshot-local")
         maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
     }
     tasks.withType<KotlinCompile> {
@@ -77,8 +75,8 @@ kotlin {
                 implementation(kotlin("reflect")) //TODO jarhell quick fix for kotlin jvm apps
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$jvmCoroutinesVersion")
-                implementation("com.epam.drill:common-jvm:$drillCommonLibVerison")
-                implementation("com.epam.drill:drill-agent-part-jvm:$drillPluginApiVersion")
+                implementation(project(":common"))
+                implementation(project(":plugin-api:drill-agent-part"))
                 implementation("com.alibaba:transmittable-thread-local:2.11.0")
             }
         }
@@ -92,8 +90,8 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
-                implementation("com.epam.drill:drill-agent-part:$drillPluginApiVersion")
-                implementation("com.epam.drill:common:$drillCommonLibVerison")
+                implementation(project(":common"))
+                implementation(project(":plugin-api:drill-agent-part"))
             }
         }
         named("commonTest") {
@@ -108,10 +106,10 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationNativeVersion")
                 implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-io-native:$kotlinxIoVersion")
-                implementation("com.epam.drill:drill-agent-part-native:$drillPluginApiVersion")
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
-                implementation("com.epam.drill:common-native:$drillCommonLibVerison")
-                implementation(project(":util"))
+                implementation(project(":plugin-api:drill-agent-part"))
+                implementation(project(":common"))
+                implementation(project(":agent:util"))
             }
         }
     }
@@ -203,7 +201,7 @@ afterEvaluate {
             create(name) {
                 baseName = name
                 contents {
-                    from(tasks.getByPath(":proxy-agent:jar"))
+                    from(tasks.getByPath(":agent:proxy-agent:jar"))
                     from(agentShadow)
                     from(tasks.getByPath("link${libName.capitalize()}DebugShared${name.capitalize()}"))
                 }
