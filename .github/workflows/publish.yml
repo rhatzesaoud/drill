@@ -21,27 +21,31 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+      - name: Publish to DockerHub
+        run: |
+          ./gradlew -si --no-daemon jib \
+          -Djib.to.auth.username=${DRILL_USERNAME} \
+          -Djib.to.auth.password=${DRILL_PASSWORD} \
+          -Djib.extraDirectories.paths=${PWD}/distr,${PWD}/ssl
+        env:
+          DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
+          DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Build & Test
-        run: |
-          gradle -si --no-daemon build mingwX64Test
-        env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false
       - name: Publish
         run: |
-          gradle --no-daemon -s -i publishMingwX64ZipPublicationToMavenRepository
+          gradle --no-daemon publishMingwX64ZipPublicationToMavenRepository
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       - name: Increment
         run: |
           gradle --no-daemon incrementVersion \
-          -PgithubUserName=${githubUserName} \
-          -PgithubUserPassword=${githubUserPassword}
+          -PgithubUserName=$Env:githubUserName \
+          -PgithubUserPassword=$Env:githubUserPassword
         env:
           githubUserName: ${{ secrets.githubUserName }}
           githubUserPassword: ${{ secrets.githubUserPassword }}
