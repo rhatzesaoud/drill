@@ -1,10 +1,10 @@
-name: Build & publish agent artifacts
+name: Build & publish drill artifacts
 on:
   push:
     branches:
       - develop
     tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.0'
 
 jobs:
   build_and_publish_for_nix:
@@ -17,8 +17,7 @@ jobs:
       - name: Publish
         run: |
           gradle -s -i check
-          gradle -s -i publishMacosX64ZipPublicationToMavenRepository
-          gradle -s -i publishLinuxX64ZipPublicationToMavenRepository
+          gradle -s -i publish
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}

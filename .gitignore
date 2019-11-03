@@ -1,7 +1,9 @@
 /build/
-/.idea/
+.idea/*
+!.idea/codeStyles
 /.gradle/
 /*/.gradle/
 /*/build/
+/*/*/build/
 /buildSrc/build/
 /buildSrc/.gradle/.gradle\

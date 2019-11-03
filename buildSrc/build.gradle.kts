@@ -4,6 +4,7 @@ plugins {
 
 repositories {
     maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
+    maven(url = "http://oss.jfrog.org/oss-release-local")
     jcenter()
 }
 
@@ -13,6 +14,9 @@ dependencies {
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
     implementation(kotlin("reflect", kotlinVersion))
+    implementation("com.epam.drill:drill-gradle-plugin:0.2.0"){
+        isChanging = true
+    }
     implementation("com.palantir.gradle.gitversion:gradle-git-version:0.12.2")
 }
 
