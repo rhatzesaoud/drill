@@ -30,6 +30,12 @@ jobs:
         env:
           DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
           DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
+      - name: Increment
+        run: |
+          gradle incrementVersion -PgithubUserName=${githubUserName} -PgithubUserPassword={githubUserPassword}
+        env:
+          githubUserName: ${{ secrets.githubUserName }}
+          githubUserPassword: ${{ secrets.githubUserPassword }}
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
     runs-on: windows-latest
@@ -41,9 +47,3 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-      - name: Increment
-        run: |
-          gradle incrementVersion -PgithubUserName=$Env:githubUserName -PgithubUserPassword=$Env:githubUserPassword
-        env:
-          githubUserName: ${{ secrets.githubUserName }}
-          githubUserPassword: ${{ secrets.githubUserPassword }}
