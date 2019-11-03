@@ -43,9 +43,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       - name: Increment
         run: |
-          gradle --no-daemon incrementVersion \
-          -PgithubUserName=$Env:githubUserName \
-          -PgithubUserPassword=$Env:githubUserPassword
+          gradle incrementVersion -PgithubUserName=$Env:githubUserName -PgithubUserPassword=$Env:githubUserPassword
         env:
           githubUserName: ${{ secrets.githubUserName }}
           githubUserPassword: ${{ secrets.githubUserPassword }}
