@@ -26,7 +26,7 @@ jobs:
           ./gradlew -si --no-daemon jib \
           -Djib.to.auth.username=${DRILL_USERNAME} \
           -Djib.to.auth.password=${DRILL_PASSWORD} \
-          -Djib.extraDirectories.paths=${PWD}/distr,${PWD}/ssl
+          -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
         env:
           DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
           DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
