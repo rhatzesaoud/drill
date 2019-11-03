@@ -32,7 +32,7 @@ jobs:
           DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
       - name: Increment
         run: |
-          gradle incrementVersion -PgithubUserName=${githubUserName} -PgithubUserPassword={githubUserPassword}
+          gradle incrementVersion -PgithubUserName=${githubUserName} -PgithubUserPassword=${githubUserPassword}
         env:
           githubUserName: ${{ secrets.githubUserName }}
           githubUserPassword: ${{ secrets.githubUserPassword }}
