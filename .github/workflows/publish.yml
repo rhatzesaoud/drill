@@ -44,4 +44,4 @@ jobs:
           -PgithubUserPassword=${githubUserPassword}
         env:
           githubUserName: ${{ secrets.githubUserName }}
-          githubUserPassword: ${{ secrets.githubUserPassword }
+          githubUserPassword: ${{ secrets.githubUserPassword }}
