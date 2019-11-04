@@ -1,8 +1,6 @@
 plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
-    id("com.jfrog.artifactory") version ("4.9.8")
-    id("com.jfrog.bintray") version ("1.8.3")
 }
 apply(from = "https://raw.githubusercontent.com/Drill4J/build-scripts/master/publish.gradle")
 repositories {
