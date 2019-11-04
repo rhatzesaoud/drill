@@ -13,17 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Check
-        run: gradle -si --no-daemon check
+        run: gradle build --scan
       - name: Publish
         run: |
-          gradle check
           gradle publish
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       - name: Publish to DockerHub
         run: |
-          ./gradlew -si --no-daemon jib \
+          ./gradlew jib \
           -Djib.to.auth.username=${DRILL_USERNAME} \
           -Djib.to.auth.password=${DRILL_PASSWORD} \
           -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
@@ -43,7 +42,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Publish
         run: |
-          gradle --no-daemon publishMingwX64ZipPublicationToMavenRepository
+          gradle publishMingwX64ZipPublicationToMavenRepository --scan
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
