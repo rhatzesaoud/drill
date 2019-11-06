@@ -7,6 +7,9 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import mu.*
+
+private val logger = KotlinLogging.logger {}
 
 fun Route.authWebSocket(
     path: String,
@@ -21,7 +24,9 @@ fun Route.authWebSocket(
 
 private suspend fun DefaultWebSocketServerSession.socketAuthentication() {
     val token = call.parameters["token"]
+
     if (token == null) {
+        logger.warn { "Authentication token is empty" }
         send(Frame.Text(WsSendMessage.serializer() stringify WsSendMessage(WsMessageType.UNAUTHORIZED)))
         close()
         return
@@ -37,9 +42,11 @@ private suspend fun DefaultWebSocketServerSession.socketAuthentication() {
 }
 
 private suspend fun DefaultWebSocketServerSession.verifyToken(token: String) {
+
     try {
         JwtConfig.verifier.verify(token)
     } catch (ex: JWTVerificationException) {
+        logger.error(ex) { "Token '$token' verified was finished with exception" }
         send(Frame.Text(WsSendMessage.serializer() stringify WsSendMessage(WsMessageType.UNAUTHORIZED)))
         close()
     }
