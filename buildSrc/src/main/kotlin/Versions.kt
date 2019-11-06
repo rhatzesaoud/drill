@@ -1,4 +1,4 @@
-val serializationRuntimeVersion = "0.12.0"
+val serializationRuntimeVersion = "0.13.0"
 
 val coroutinesVersion = "1.3.0"
 
@@ -15,3 +15,5 @@ val jacocoVersion = "0.8.3"
 val vavrVersion = "0.10.0"
 
 val bcelVersion = "6.3.1"
+
+val koduxVersion = "0.1.3"
