@@ -28,6 +28,10 @@ actual abstract class AgentPart<T, A> actual constructor(payload: PluginPayload)
             on()
     }
 
+    fun send(message: String) {
+        Sender.sendMessage(id, message)
+    }
+
     actual fun unload(unloadReason: UnloadReason) {
         off()
         destroyPlugin(unloadReason)

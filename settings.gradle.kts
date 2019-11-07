@@ -2,6 +2,7 @@ rootProject.name = "drill"
 include(":admin")
 include(":admin:core")
 include(":admin:test-framework")
+include(":admin:test-framework:test-data")
 include(":agent")
 include(":agent:proxy-agent")
 include(":agent:pt-runner")
