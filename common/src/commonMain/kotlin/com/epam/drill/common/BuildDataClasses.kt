@@ -1,6 +1,6 @@
 package com.epam.drill.common
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 @Serializable
 data class Method(
@@ -34,6 +34,7 @@ data class MethodChanges(val map: Map<DiffType, List<Method>> = emptyMap()){
 
 data class BuildInfo(
     val buildVersion: String = "",
+    val buildAlias: String = "",
     val buildSummary: BuildSummary = BuildSummary(),
     val prevBuild: String = "",
     val methodChanges: MethodChanges = MethodChanges(),
