@@ -39,18 +39,42 @@ data class BuildInfo(
     val prevBuild: String = "",
     val methodChanges: MethodChanges = MethodChanges(),
     val classesBytes: Map<String, ByteArray> = emptyMap(),
-    val javaMethods: Map<String, Methods> = emptyMap()
+    val javaMethods: Map<String, Methods> = emptyMap(),
+    val new: Boolean = true
 )
 
 @Serializable
 data class BuildSummary(
-    val name: String = "",
+    val buildVersion: String = "",
     val addedDate: Long = 0,
     val totalMethods: Int = 0,
     val newMethods: Int = 0,
     val modifiedMethods: Int = 0,
     val unaffectedMethods: Int = 0,
     val deletedMethods: Int = 0
+)
+
+@Serializable
+data class BuildSummaryWebSocket(
+    val buildVersion: String,
+    val alias: String,
+    val addedDate: Long,
+    val totalMethods: Int,
+    val newMethods: Int,
+    val modifiedMethods: Int,
+    val unaffectedMethods: Int,
+    val deletedMethods: Int
+)
+
+fun BuildSummary.toWebSocketSummary(buildAlias: String) = BuildSummaryWebSocket(
+    buildVersion = this.buildVersion,
+    alias = buildAlias,
+    addedDate = this.addedDate,
+    totalMethods = this.totalMethods,
+    newMethods = this.newMethods,
+    modifiedMethods = this.modifiedMethods,
+    unaffectedMethods = this.unaffectedMethods,
+    deletedMethods = this.deletedMethods
 )
 
 @Serializable

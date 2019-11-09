@@ -8,7 +8,7 @@ interface AdminData {
 
 interface BuildManager {
     val buildInfos: Map<String, BuildInfo>
-    val summaries: List<BuildSummary>
+    val summaries: List<BuildSummaryWebSocket>
 
     operator fun get(buildVersion: String): BuildInfo?
 }
