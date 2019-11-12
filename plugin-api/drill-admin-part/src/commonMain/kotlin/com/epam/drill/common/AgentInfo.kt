@@ -8,6 +8,7 @@ data class AgentInfo(
     @Id val id: String,
     var name: String,
     var status: AgentStatus,
+    var serviceGroup: String = "",
     var groupName: String = "",
     var description: String,
     var buildVersion: String,

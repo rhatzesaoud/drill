@@ -6,6 +6,7 @@ import kotlinx.serialization.*
 data class AgentConfig(
     val id: String,
     var buildVersion: String,
+    var serviceGroupId: String,
     var needSync: Boolean = true,
     var packagesPrefixes: String = "{\"packagesPrefixes\":[]}"
 )
