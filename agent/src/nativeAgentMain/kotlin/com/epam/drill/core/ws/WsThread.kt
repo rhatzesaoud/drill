@@ -51,7 +51,7 @@ fun startWs() {
                     websocket(exec { adminAddress.toString() })
                 }
             } catch (ex: Exception) {
-                wsLogger.error { "Starting WS handle with exception '${ex.getStackTrace()}', try to reconnect" }
+                wsLogger.error { "Starting WS handle with exception '${ex.getStackTrace().joinToString()}', try to reconnect" }
             }
         }
     }
@@ -114,7 +114,7 @@ suspend fun websocket(adminUrl: String) {
     }
 
     wsClient.onError.add {
-        wsLogger.error { "WS error: ${it.getStackTrace()}" }
+        wsLogger.error { "WS error: ${it.getStackTrace().joinToString()}" }
     }
     wsClient.onClose.add {
         wsLogger.info { "Websocket closed" }
@@ -151,7 +151,7 @@ fun Worker.executeCoroutines(block: suspend CoroutineScope.() -> Unit): Future<U
                 it(this)
             }
         } catch (ex: Throwable) {
-            wsLogger.error { "Coroutine scope finisher with error ${ex.getStackTrace()}" }
+            wsLogger.error { "Coroutine scope finisher with error ${ex.getStackTrace().joinToString()}" }
         }
     }
 }
