@@ -12,12 +12,6 @@ jobs:
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions/cache@preview
-        with:
-          path: ./build-cache
-          key: ${{ runner.os }}-gradles-${{ hashFiles('**/*.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradles-
       - name: Check
         run: gradle build --scan
       - name: Publish
@@ -46,12 +40,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions/cache@preview
-        with:
-          path: ./build-cache
-          key: ${{ runner.os }}-gradles-${{ hashFiles('**/*.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradles-
       - name: Publish
         run: |
           gradle publishMingwX64ZipPublicationToMavenRepository --scan
