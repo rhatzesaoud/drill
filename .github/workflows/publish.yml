@@ -1,10 +1,8 @@
 name: Build & publish drill artifacts
 on:
   push:
-    branches:
-      - develop
     tags:
-      - 'v[0-9]*.[0-9]*.0'
+      - '*'
 
 jobs:
   build_and_publish_for_nix:
@@ -29,12 +27,6 @@ jobs:
         env:
           DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
           DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
-      - name: Increment
-        run: |
-          gradle incrementVersion -PgithubUserName=${githubUserName} -PgithubUserPassword=${githubUserPassword}
-        env:
-          githubUserName: ${{ secrets.githubUserName }}
-          githubUserPassword: ${{ secrets.githubUserPassword }}
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
     runs-on: windows-latest
