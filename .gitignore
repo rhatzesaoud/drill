@@ -3,3 +3,4 @@ build/
 /build-cache/
 !.idea/codeStyles
 .gradle/
+.kotlintest/
