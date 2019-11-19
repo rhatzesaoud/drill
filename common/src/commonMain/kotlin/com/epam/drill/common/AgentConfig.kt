@@ -20,5 +20,8 @@ data class PackagesPrefixes(
 @Serializable
 data class PluginId(val pluginId: String)
 
+@Serializable
+data class TogglePayload(val pluginId: String, val forceValue: Boolean? = null)
+
 const val AgentConfigParam = "AgentConfig"
 const val NeedSyncParam = "needSync"
