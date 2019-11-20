@@ -11,13 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: eskatos/gradle-command-action@v1
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
+          DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
         with:
           gradle-version: 5.6.4
-          env:
-            BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-            BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-            DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
-            DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
           arguments:
             build --scan
             publish
@@ -31,10 +31,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: eskatos/gradle-command-action@v1
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
         with:
           gradle-version: 5.6.4
-          env:
-            BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-            BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           arguments:
             publishMingwX64ZipPublicationToMavenRepository --scan
