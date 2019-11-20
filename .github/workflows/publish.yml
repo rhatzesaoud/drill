@@ -21,9 +21,7 @@ jobs:
           arguments:
             build --scan
             publish
-            jib -Djib.to.auth.username=${DRILL_USERNAME} \
-            -Djib.to.auth.password=${DRILL_PASSWORD} \
-            -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
+            jib -Djib.to.auth.username=${DRILL_USERNAME} -Djib.to.auth.password=${DRILL_PASSWORD} -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
 
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
