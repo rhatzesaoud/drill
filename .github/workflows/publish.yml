@@ -14,14 +14,20 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
-          DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
         with:
           gradle-version: 5.6.4
           arguments:
             build --scan
             publish
-            jib -Djib.to.auth.username=${DRILL_USERNAME} -Djib.to.auth.password=${DRILL_PASSWORD} -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
+      - name: Publish to DockerHub
+        run: |
+          gradle jib \
+          -Djib.to.auth.username=${DRILL_USERNAME} \
+          -Djib.to.auth.password=${DRILL_PASSWORD} \
+          -Djib.extraDirectories.paths=${PWD}/admin/distr,${PWD}/admin/ssl
+        env:
+          DRILL_USERNAME: ${{ secrets.DRILL_USERNAME }}
+          DRILL_PASSWORD: ${{ secrets.DRILL_PASSWORD }}
 
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
