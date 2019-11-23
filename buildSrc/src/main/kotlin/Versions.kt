@@ -1,14 +1,14 @@
-val serializationRuntimeVersion = "0.13.0"
+val serializationRuntimeVersion = "0.14.0"
 
-val coroutinesVersion = "1.3.0"
+val coroutinesVersion = "1.3.2-1.3.60"
 
-val ktorUtilVersion = "1.2.4"
+val ktorUtilVersion = "1.2.6"
 
-val kotlinxIoVersion = "0.1.14"
+val kotlinxIoVersion = "0.1.16"
 
-val drillJvmApiLibVerison = "0.1.0"
+val drillJvmApiLibVerison = "0.0.2"
 
-val ktorVersion = "1.2.5"
+val ktorVersion = "1.2.6"
 
 val jacocoVersion = "0.8.3"
 
@@ -16,4 +16,4 @@ val vavrVersion = "0.10.0"
 
 val bcelVersion = "6.3.1"
 
-val koduxVersion = "0.1.4"
+val koduxVersion = "0.1.5"
