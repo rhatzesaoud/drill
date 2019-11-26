@@ -8,8 +8,10 @@ include(":admin:test-framework:test-plugin:admin-part")
 include(":admin:test-framework:test-plugin:agent-part")
 include(":agent")
 include(":agent:core")
-include(":agent:proxy-agent")
-include(":agent:pt-runner")
+include(":agent:dotnet")
+include(":agent:java")
+include(":agent:java:proxy-agent")
+include(":agent:java:pt-runner")
 include(":agent:util")
 
 
