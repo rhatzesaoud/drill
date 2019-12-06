@@ -31,7 +31,7 @@ kotlin {
             dependencies {
                 implementation(project(":common"))
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesNativeVersion")
             }
         }
         @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(nativeMain) }

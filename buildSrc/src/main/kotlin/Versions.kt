@@ -1,6 +1,8 @@
 val serializationRuntimeVersion = "0.14.0"
 
-val coroutinesVersion = "1.3.2-1.3.60"
+val coroutinesVersion = "1.3.2-native-mt-1"
+
+val coroutinesNativeVersion = "1.3.2-native-mt-1"
 
 val ktorUtilVersion = "1.2.6"
 
