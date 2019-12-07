@@ -126,10 +126,6 @@ tasks {
         from(javaAgentJar)
     }
 
-    named<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>("nativeAgentTest") {
-        testLogging.showStandardStreams = true
-    }
-
     named<Jar>("javaAgentJar") {
         archiveFileName.set("drillRuntime-temp.jar")
         from(provider {
