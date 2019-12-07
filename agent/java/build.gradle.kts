@@ -98,6 +98,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
                 implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
+                implementation("com.benasher44:uuid:0.0.6")
                 implementation(project(":plugin-api:drill-agent-part"))
                 implementation(project(":common"))
                 implementation(project(":agent:core"))
