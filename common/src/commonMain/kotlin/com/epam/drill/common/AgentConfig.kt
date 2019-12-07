@@ -5,6 +5,7 @@ import kotlinx.serialization.*
 @Serializable
 data class AgentConfig(
     val id: String,
+    val instanceId: String,
     var buildVersion: String,
     var serviceGroupId: String,
     val agentType: AgentType,
