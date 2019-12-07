@@ -41,6 +41,7 @@ class TestContext<T : PluginStreams>(val agents: MutableMap<String, AgentAsyncSt
         serviceGroup: String = "",
         ags: AgentWrap = AgentWrap(
             agents.keys.first(),
+            "1",
             run {
                 val map =
                     File("./build/classes/java/${B::class.objectInstance!!.name}").walkTopDown()
