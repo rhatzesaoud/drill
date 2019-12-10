@@ -43,6 +43,10 @@ kotlin {
         @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
     }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions>> {
+    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlinx.serialization.ImplicitReflectionSerializer"
+}
 tasks.build {
     dependsOn("publishToMavenLocal")
 }
