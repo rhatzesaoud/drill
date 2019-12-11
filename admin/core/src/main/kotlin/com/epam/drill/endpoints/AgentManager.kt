@@ -33,9 +33,11 @@ class AgentManager(override val kodein: Kodein) : KodeinAware {
     val plugins: Plugins by instance()
     val adminDataVault: AdminDataVault by instance()
     private val notificationsManager: NotificationsManager by instance()
+    private val serviceGroupStorage: ServiceGroupStorage by instance()
 
     suspend fun agentConfiguration(config: AgentConfig): AgentInfo {
         val (agentId: String, instanceId: String, pBuildVersion: String, serviceGroup: String, agentType) = config
+        serviceGroupStorage.addAgent(agentId, serviceGroup)
         val agentStore = store.agentStore(agentId)
         val existingAgent =
             agentStore.findById<AgentInfo>(agentId)?.apply { processBuild(pBuildVersion, agentId) }

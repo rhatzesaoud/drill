@@ -4,6 +4,7 @@ import com.epam.drill.*
 import com.epam.drill.admindata.*
 import com.epam.drill.cache.*
 import com.epam.drill.cache.impl.*
+import com.epam.drill.common.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.agent.*
 import com.epam.drill.endpoints.openapi.*
@@ -19,11 +20,13 @@ import com.epam.kodux.*
 import io.ktor.application.*
 import org.kodein.di.*
 import org.kodein.di.generic.*
+import java.util.concurrent.*
 
 val storage: Kodein.Builder.(Application) -> Unit
     get() = { _ ->
         bind<StoreManager>() with eagerSingleton { StoreManager(drillWorkDir) }
         bind<AgentStorage>() with singleton { ObservableMapStorage<String, AgentEntry, MutableSet<AgentWsSession>>() }
+        bind<ServiceGroupStorage>() with singleton { ConcurrentHashMap<String, ServiceGroup>() }
         bind<CacheService>() with eagerSingleton { JvmCacheService() }
         bind<AgentManager>() with eagerSingleton { AgentManager(kodein) }
         bind<SessionStorage>() with eagerSingleton { SessionStorage() }

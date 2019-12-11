@@ -7,6 +7,7 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.endpoints.*
 import com.epam.drill.endpoints.plugin.*
+import com.epam.drill.storage.*
 import com.epam.drill.system.*
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
@@ -29,6 +30,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
     private val agentManager: AgentManager by instance()
     private val pd: PluginDispatcher by kodein.instance()
     private val topicResolver: TopicResolver by instance()
+    private val serviceGroupStorage: ServiceGroupStorage by instance()
 
     init {
         app.routing {
@@ -124,6 +126,7 @@ class AgentHandler(override val kodein: Kodein) : KodeinAware {
                 else -> logger.error(ex) { "Handle with exception" }
             }
         } finally {
+            serviceGroupStorage.removeAgent(agentInfo.id, agentInfo.serviceGroup)
             agentInfo.instanceIds.remove(instanceId)
             if (agentInfo.instanceIds.isEmpty()) {
                 agentManager.remove(agentInfo)
