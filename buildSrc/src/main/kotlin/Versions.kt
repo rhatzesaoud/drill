@@ -19,3 +19,7 @@ val vavrVersion = "0.10.0"
 val bcelVersion = "6.3.1"
 
 val koduxVersion = "0.1.5"
+
+val swaggerVersion = "0.6.3"
+
+val gsonVersion = "1.2.5"
