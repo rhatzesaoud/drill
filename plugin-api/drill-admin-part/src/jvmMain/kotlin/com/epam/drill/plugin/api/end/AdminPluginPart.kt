@@ -16,6 +16,6 @@ abstract class AdminPluginPart<A>(
     open suspend fun updateDataOnBuildConfigChange(buildVersion: String) = Unit
     open suspend fun applyPackagesChanges() = Unit
     open suspend fun initialize() = Unit
-    open fun getPluginData(params: Map<String, String>): String = ""
+    open suspend fun getPluginData(params: Map<String, String>): String = ""
     abstract suspend fun dropData()
 }
