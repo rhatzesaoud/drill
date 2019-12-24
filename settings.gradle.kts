@@ -1,11 +1,4 @@
 rootProject.name = "drill"
-include(":admin")
-include(":admin:core")
-include(":admin:test-framework")
-include(":admin:test-framework:test-data")
-include(":admin:test-framework:test-plugin")
-include(":admin:test-framework:test-plugin:admin-part")
-include(":admin:test-framework:test-plugin:agent-part")
 include(":agent")
 include(":agent:core")
 include(":agent:dotnet")
