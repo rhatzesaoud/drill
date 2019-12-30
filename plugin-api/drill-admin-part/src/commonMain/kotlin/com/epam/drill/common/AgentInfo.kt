@@ -9,7 +9,7 @@ data class AgentInfo(
     var name: String,
     var status: AgentStatus,
     var serviceGroup: String = "",
-    var groupName: String = "",
+    var environment: String = "",
     var description: String,
     var buildVersion: String,
     var buildAlias: String,
@@ -48,3 +48,4 @@ enum class AgentStatus {
     OFFLINE,
     BUSY;
 }
+
