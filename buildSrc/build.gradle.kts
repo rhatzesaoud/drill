@@ -10,13 +10,13 @@ repositories {
 }
 
 val kotlinVersion = "1.3.60"
+val drillPluginVersion = "0.9.0"
 dependencies {
     implementation(kotlin("gradle-plugin", kotlinVersion))
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
     implementation(kotlin("reflect", kotlinVersion))
-    implementation("com.epam.drill:drill-gradle-plugin:0.4.0") { isChanging = true }
-    implementation("com.palantir.gradle.gitversion:gradle-git-version:0.12.2")
+    implementation("com.epam.drill:gradle-plugin:$drillPluginVersion")
 }
 
 kotlinDslPluginOptions {
