@@ -17,11 +17,16 @@ const val HOST = "host"
 const val DRILL_SESSION_ID = "drill-session-id"
 
 fun parseHttpRequest(request: RawHttpRequest): HttpRequest {
-    val reader = request.lineSequence().takeWhile { it.isNotBlank() }
-    val query = reader.first().toRequestQuery()
-    val requestHeaders = parseHeaders(reader.drop(1))
-    val cookies = parseCookies(requestHeaders)
-    return HttpRequest(query, requestHeaders, cookies)
+    try {
+        val reader = request.lineSequence().takeWhile { it.isNotBlank() }
+        val query = reader.first().toRequestQuery()
+        val requestHeaders = parseHeaders(reader.drop(1))
+        val cookies = parseCookies(requestHeaders)
+        return HttpRequest(query, requestHeaders, cookies)
+    } catch (ex: RuntimeException) {
+        println("Some problem with request:\n $request")
+        throw  ex
+    }
 
 }
 
@@ -38,7 +43,8 @@ private fun parseCookies(requestHeaders: Map<String, String>) = requestHeaders[C
 } ?: mutableMapOf()
 
 
-private fun parseHeaders(rawHeaders: Sequence<String>) = rawHeaders.filter { it.isNotBlank() }.associate { parseHeaderLine(it) }
+private fun parseHeaders(rawHeaders: Sequence<String>) =
+    rawHeaders.filter { it.isNotBlank() }.associate { parseHeaderLine(it) }
 
 private fun parseHeaderLine(header: String): Pair<String, String> {
     val idx = header.indexOfFirst { it == ':' }
