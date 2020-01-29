@@ -48,4 +48,3 @@ enum class AgentStatus {
     OFFLINE,
     BUSY;
 }
-
