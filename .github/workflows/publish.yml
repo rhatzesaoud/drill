@@ -18,6 +18,7 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          GRADLE_OPTS: -Xmx2048m
 
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
