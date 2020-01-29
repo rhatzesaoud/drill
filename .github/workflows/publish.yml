@@ -10,15 +10,13 @@ jobs:
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Check
-        run: gradle build
       - name: Publish
         run: |
-          gradle -si publish
+          gradle --no-daemon -si publish
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GRADLE_OPTS: -Xmx4096m
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4096m
 
   build_and_publish_for_win:
     name: Publish for Windows platform (Windows platform)
