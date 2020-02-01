@@ -30,7 +30,7 @@ kotlin {
         val nativeMain by creating {
             dependencies {
                 implementation(project(":common"))
-                implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVerison")
+                implementation("com.epam.drill:jvmapi-native:$drillJvmApiLibVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesNativeVersion")
             }
         }

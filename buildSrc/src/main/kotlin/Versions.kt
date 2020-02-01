@@ -8,7 +8,9 @@ val ktorUtilVersion = "1.2.6"
 
 val kotlinxIoVersion = "0.1.16"
 
-val drillJvmApiLibVerison = "0.0.2"
+val drillJvmApiLibVersion = "0.3.0"
+
+val drillHookVersion = "1.0.0"
 
 val ktorVersion = "1.2.6"
 
