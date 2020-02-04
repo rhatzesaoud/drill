@@ -1,12 +1,4 @@
 rootProject.name = "drill"
-include(":agent")
-include(":agent:core")
-include(":agent:dotnet")
-include(":agent:java")
-include(":agent:java:proxy-agent")
-include(":agent:java:pt-runner")
-include(":agent:util")
-
 
 include(":common")
 include(":plugin-api")
@@ -18,5 +10,3 @@ buildCache {
         removeUnusedEntriesAfterDays = 30
     }
 }
-
-enableFeaturePreview("GRADLE_METADATA")

@@ -27,6 +27,10 @@ sealed class Communication {
         @Serializable
         @Topic("/agent/change-header-name")
         class ChangeHeaderNameEvent
+
+        @Serializable
+        @Topic("/agent/toggle")
+        class ToggleEvent
     }
 
     sealed class Plugin {

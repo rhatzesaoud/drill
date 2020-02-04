@@ -2,7 +2,6 @@ plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
 }
-apply(from = "https://raw.githubusercontent.com/Drill4J/build-scripts/master/publish.gradle")
 repositories {
     mavenCentral()
     jcenter()
@@ -10,7 +9,7 @@ repositories {
 
 kotlin {
     targets {
-        mingwX64("windowsX64")
+        mingwX64()
         linuxX64("linuxX64")
         jvm()
         macosX64("macosX64")
@@ -38,7 +37,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
             }
         }
-        @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(commonNativeSs) }
+        @Suppress("UNUSED_VARIABLE") val mingwX64Main by getting { dependsOn(commonNativeSs) }
         @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(commonNativeSs) }
         @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
     }

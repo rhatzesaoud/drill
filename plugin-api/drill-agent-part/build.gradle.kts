@@ -2,12 +2,11 @@ plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
 }
-apply(from = "https://raw.githubusercontent.com/Drill4J/build-scripts/master/publish.gradle")
 
 kotlin {
     targets {
         jvm()
-        mingwX64("windowsX64")
+        mingwX64("mingwX64")
         linuxX64("linuxX64")
         macosX64("macosX64")
     }
@@ -34,7 +33,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesNativeVersion")
             }
         }
-        @Suppress("UNUSED_VARIABLE") val windowsX64Main by getting { dependsOn(nativeMain) }
+        @Suppress("UNUSED_VARIABLE") val mingwX64Main by getting { dependsOn(nativeMain) }
         @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(nativeMain) }
         @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(nativeMain) }
 

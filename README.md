@@ -1,4 +1,4 @@
-# Drill back-end services
+# Drill common back-end API modules
 
-This repo contains all back-end related Drill4J project parts (admin service, agent, common and plugin API modules).
+This repo contains common back-end related Drill4J project parts (common and plugin API modules).
 Have a look at modules' readmes for further info.
