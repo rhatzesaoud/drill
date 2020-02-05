@@ -2,70 +2,99 @@ package com.epam.drill.logger
 
 import io.ktor.util.date.*
 import mu.*
+import kotlin.native.concurrent.*
 
-class NativeLogger(val name: String) : KLogger {
+@SharedImmutable
+val isTraceEnabled = AtomicReference(false).freeze()
+
+@SharedImmutable
+val isDebugEnabled = AtomicReference(false).freeze()
+
+@SharedImmutable
+val isInfoEnabled = AtomicReference(false).freeze()
+
+@SharedImmutable
+val isWarnEnabled = AtomicReference(false).freeze()
+
+class NativeLogger(private val name: String) : KLogger {
     override fun trace(msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
+        if (isTraceEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
     }
 
     override fun trace(t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
+        if (isTraceEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
     }
 
     override fun trace(marker: Marker?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
+        if (isTraceEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
     }
 
     override fun trace(marker: Marker?, t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
+        if (isTraceEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL trace] ${msg()}")
     }
 
     override fun debug(msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
+        if (isDebugEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
     }
 
     override fun debug(t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
+        if (isDebugEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
     }
 
     override fun debug(marker: Marker?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
+        if (isDebugEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
     }
 
     override fun debug(marker: Marker?, t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
+        if (isDebugEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL debug] ${msg()}")
     }
 
     override fun info(msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
+        if (isInfoEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
     }
 
     override fun info(t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
+        if (isInfoEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
     }
 
     override fun info(marker: Marker?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
+        if (isInfoEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
     }
 
     override fun info(marker: Marker?, t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
+        if (isInfoEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL info] ${msg()}")
     }
 
     override fun warn(msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
+        if (isWarnEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
     }
 
     override fun warn(t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
+        if (isWarnEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
     }
 
     override fun warn(marker: Marker?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
+        if (isWarnEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
     }
 
     override fun warn(marker: Marker?, t: Throwable?, msg: () -> Any?) {
-        println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
+        if (isWarnEnabled.value)
+            println("${GMTDate().toLogDate()} [$name][DRILL warn] ${msg()}")
     }
 
     override fun error(msg: () -> Any?) {
