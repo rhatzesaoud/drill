@@ -2,7 +2,7 @@ import org.apache.tools.ant.taskdefs.condition.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
-val isDevMode = System.getProperty("idea.active") == "false"
+val isDevMode = System.getProperty("idea.active") == "true"
 
 val presetName: String =
     when {

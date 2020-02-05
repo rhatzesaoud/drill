@@ -33,7 +33,6 @@ kotlin {
             compilations["main"].defaultSourceSet {
                 dependencies {
                     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
-                    implementation("io.github.microutils:kotlin-logging:$loggingVersion")
                 }
                 compilations["test"].defaultSourceSet {
                     dependencies {
@@ -46,7 +45,6 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
-                implementation("io.github.microutils:kotlin-logging-common:$loggingVersion")
             }
         }
 
@@ -85,6 +83,5 @@ tasks.build {
 fun KotlinSourceSet.applyDependencies() {
     dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
-        implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
     }
 }
