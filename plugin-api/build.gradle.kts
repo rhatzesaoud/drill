@@ -1,9 +1,9 @@
 subprojects {
     repositories {
-        mavenCentral()
         jcenter()
         mavenLocal()
-        maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
+        mavenCentral()
         maven(url = "https://kotlin.bintray.com/kotlinx")
+        maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
     }
 }

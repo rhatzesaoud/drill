@@ -1,7 +1,10 @@
+import org.jetbrains.kotlin.gradle.plugin.*
+
 plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
 }
+
 repositories {
     mavenCentral()
     jcenter()
@@ -9,43 +12,79 @@ repositories {
 
 kotlin {
     targets {
-        mingwX64()
-        linuxX64("linuxX64")
+        if (isDevMode)
+            currentTarget {
+                compilations["main"].apply {
+                    defaultSourceSet {
+                        kotlin.srcDir("./src/nativeCommonMain/kotlin")
+                        applyDependencies()
+                    }
+                }
+            }
+        else {
+            setOf(linuxX64(), macosX64(), mingwX64())
+        }
         jvm()
-        macosX64("macosX64")
 
     }
 
     sourceSets {
-        jvm().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
+        jvm {
+            compilations["main"].defaultSourceSet {
+                dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
+                    implementation("io.github.microutils:kotlin-logging:$loggingVersion")
+                }
+                compilations["test"].defaultSourceSet {
+                    dependencies {
+                        implementation(kotlin("test-junit"))
+                    }
+                }
             }
         }
-
-        val commonMain by getting
-        commonMain.apply {
+        commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
+                implementation("io.github.microutils:kotlin-logging-common:$loggingVersion")
             }
         }
 
-
-        val commonNativeSs by creating {
+        commonTest {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
+                implementation("org.jetbrains.kotlin:kotlin-test-common")
+                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
             }
         }
-        @Suppress("UNUSED_VARIABLE") val mingwX64Main by getting { dependsOn(commonNativeSs) }
-        @Suppress("UNUSED_VARIABLE") val linuxX64Main by getting { dependsOn(commonNativeSs) }
-        @Suppress("UNUSED_VARIABLE") val macosX64Main by getting { dependsOn(commonNativeSs) }
+
+        if (!isDevMode) {
+            val commonNativeMain = maybeCreate("nativeCommonMain")
+            targets.filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().forEach {
+                it.compilations.forEach { knCompilation ->
+                    if (knCompilation.name == "main")
+                        knCompilation.defaultSourceSet {
+                            dependsOn(commonNativeMain)
+                            applyDependencies()
+                        }
+                }
+            }
+        }
     }
 }
 
+tasks.withType<AbstractTestTask> {
+    testLogging.showStandardStreams = true
+}
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions>> {
     kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlinx.serialization.ImplicitReflectionSerializer"
 }
 tasks.build {
     dependsOn("publishToMavenLocal")
+}
+
+fun KotlinSourceSet.applyDependencies() {
+    dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
+        implementation("io.ktor:ktor-utils-native:$ktorUtilVersion")
+    }
 }

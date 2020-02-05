@@ -8,7 +8,6 @@ plugins {
 subprojects {
     apply(plugin = "com.epam.drill.version.plugin")
 
-
     apply { plugin(org.gradle.api.publish.maven.plugins.MavenPublishPlugin::class) }
     publishing {
         repositories {
@@ -28,11 +27,7 @@ subprojects {
         }
     }
 
-
     tasks.withType<KotlinCompile> {
-        kotlinOptions.allWarningsAsErrors = true
-    }
-    tasks.withType<KotlinNativeCompile> {
         kotlinOptions.allWarningsAsErrors = true
     }
 }

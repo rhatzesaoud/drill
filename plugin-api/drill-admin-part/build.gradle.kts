@@ -2,7 +2,6 @@ plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
 }
-apply(from = "https://raw.githubusercontent.com/Drill4J/build-scripts/master/publish.gradle")
 
 kotlin {
     targets {
@@ -10,7 +9,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
