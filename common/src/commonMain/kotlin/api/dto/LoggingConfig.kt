@@ -1,5 +1,8 @@
 package api.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class LoggingConfig(
     val warn: Boolean = false,
     val info: Boolean = false,
