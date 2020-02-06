@@ -31,6 +31,10 @@ sealed class Communication {
         @Serializable
         @Topic("/agent/toggle")
         class ToggleEvent
+
+        @Serializable
+        @Topic("/agent/logging/update-config")
+        class UpdateLoggingConfigEvent
     }
 
     sealed class Plugin {
