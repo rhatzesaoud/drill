@@ -1,14 +1,13 @@
 package com.epam.drill.plugin.api.processing
 
-import com.epam.drill.jvmapi.gen.*
 import kotlinx.cinterop.*
 import kotlin.native.concurrent.*
 
 class NativePluginApi(
     val pluginId: String,
-    val jvmti: CPointer<jvmtiEnvVar>?,
-    val jvm: CPointer<JavaVMVar>?,
-    val clb: CPointer<jvmtiEventCallbacks>?,
+    val jvmti: CPointer<*>?,
+    val jvm: CPointer<*>?,
+    val clb: CPointer<*>?,
     val sender: CPointer<CFunction<(pluginId: CPointer<ByteVar>, message: CPointer<ByteVar>) -> Unit>>
 )
 

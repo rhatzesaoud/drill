@@ -1,8 +1,7 @@
-import org.jetbrains.kotlin.gradle.plugin.*
-
 plugins {
     id("kotlin-multiplatform")
     id("kotlinx-serialization")
+    id("com.epam.drill.cross-compilation")
 }
 
 repositories {
@@ -11,22 +10,22 @@ repositories {
 }
 
 kotlin {
-    targets {
-        if (isDevMode)
-            currentTarget {
-                compilations["main"].apply {
-                    defaultSourceSet {
-                        kotlin.srcDir("./src/nativeCommonMain/kotlin")
-                        applyDependencies()
-                    }
+
+    linuxX64()
+    macosX64()
+    mingwX64()
+    crossCompilation {
+
+        common {
+            defaultSourceSet {
+                dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
                 }
             }
-        else {
-            setOf(linuxX64(), macosX64(), mingwX64())
         }
-        jvm()
-
     }
+    jvm()
+
 
     sourceSets {
         jvm {
@@ -55,18 +54,6 @@ kotlin {
             }
         }
 
-        if (!isDevMode) {
-            val commonNativeMain = maybeCreate("nativeCommonMain")
-            targets.filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().forEach {
-                it.compilations.forEach { knCompilation ->
-                    if (knCompilation.name == "main")
-                        knCompilation.defaultSourceSet {
-                            dependsOn(commonNativeMain)
-                            applyDependencies()
-                        }
-                }
-            }
-        }
     }
 }
 
@@ -78,10 +65,4 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<org.jetbrains.kotli
 }
 tasks.build {
     dependsOn("publishToMavenLocal")
-}
-
-fun KotlinSourceSet.applyDependencies() {
-    dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
-    }
 }
