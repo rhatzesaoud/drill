@@ -7,8 +7,10 @@ interface AdminData {
 }
 
 interface BuildManager {
+    @Deprecated(message = "Exposure of inner state", replaceWith = ReplaceWith("builds"))
     val buildInfos: Map<String, BuildInfo>
-    val summaries: List<BuildSummaryWebSocket>
 
-    operator fun get(buildVersion: String): BuildInfo?
+    val builds: Collection<BuildInfo>
+
+    operator fun get(version: String): BuildInfo?
 }

@@ -12,7 +12,6 @@ data class AgentInfo(
     var environment: String = "",
     var description: String,
     var buildVersion: String,
-    var buildAlias: String,
     var agentType: AgentType,
     var sessionIdHeaderName: String = "",
     val adminUrl: String = "",
@@ -20,27 +19,11 @@ data class AgentInfo(
     val plugins: MutableSet<PluginMetadata> = mutableSetOf()
 ) {
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as AgentInfo
-
-        if (id != other.id) return false
-        if (buildVersion != other.buildVersion) return false
-
-        return true
+        return other is AgentInfo && id == other.id && buildVersion == other.buildVersion
     }
 
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + buildVersion.hashCode()
-        return result
-    }
+    override fun hashCode() = (id to buildVersion).hashCode()
 }
-
-
-@Serializable
-data class AgentBuildVersionJson(val id: String, var name: String)
 
 enum class AgentStatus {
     NOT_REGISTERED,
