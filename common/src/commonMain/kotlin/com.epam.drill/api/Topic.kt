@@ -11,7 +11,7 @@ annotation class Topic(val url: String)
 inline fun <reified T : Any> KClass<T>.topicUrl() = (this
     .serializer())
     .descriptor
-    .getEntityAnnotations()
+    .annotations
     .filterIsInstance<Topic>()
     .first()
     .url
