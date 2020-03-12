@@ -15,23 +15,17 @@ typealias Methods = List<Method>
 @Serializable
 data class MethodChanges(val map: Map<DiffType, Methods> = emptyMap())
 
+@Serializable
 data class BuildInfo(
     val version: String = "",
     val parentVersion: String = "",
     val methodChanges: MethodChanges = MethodChanges(),
     val classesBytes: Map<String, ByteArray> = emptyMap(),
-    val javaMethods: Map<String, Methods> = emptyMap(),
-    val new: Boolean = true
+    val javaMethods: Map<String, Methods> = emptyMap()
 ) {
     override fun equals(other: Any?) = other is BuildInfo && version == other.version
 
     override fun hashCode() = version.hashCode()
-
-    @Deprecated(message = "Old inconsistent name", replaceWith = ReplaceWith("version"))
-    val buildVersion get() = version
-
-    @Deprecated(message = "Old inconsistent name", replaceWith = ReplaceWith("parentVersion"))
-    val prevBuild get() = parentVersion
 }
 
 @Serializable
