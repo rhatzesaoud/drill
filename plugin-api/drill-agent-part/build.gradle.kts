@@ -13,6 +13,11 @@ kotlin {
                     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
                 }
             }
+            compilations["test"].defaultSourceSet {
+                dependencies {
+                    implementation(kotlin("test-junit"))
+                }
+            }
         }
         linuxX64()
         macosX64()
@@ -38,6 +43,12 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 implementation(project(":common"))
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation("org.jetbrains.kotlin:kotlin-test-common")
+                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
             }
         }
     }
