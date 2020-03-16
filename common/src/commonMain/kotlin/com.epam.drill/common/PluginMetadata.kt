@@ -11,11 +11,9 @@ data class PluginMetadata(
         var family: Family = Family.INSTRUMENTATION,
         var enabled: Boolean = true,
         var config: String = "",
-        var md5Hash: String = "",
+        var checkSum: String = "",
         var isNative: Boolean = false
-) {
-    fun toPluginConfig() = PluginConfig(id, config)
-}
+)
 
 enum class Family {
     GENERIC, INSTRUMENTATION
