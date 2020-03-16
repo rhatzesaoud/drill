@@ -25,5 +25,5 @@ interface DrillPlugin<A> {
 class SerDe<A>(
     val actionSerializer: KSerializer<A>,
     val ctx: SerialModule = EmptyModule,
-    private val fmt: StringFormat = Json(context = ctx)
+    private val fmt: StringFormat = Json(context = ctx, configuration = JsonConfiguration.Stable.copy(isLenient = true))
 ) : StringFormat by fmt
