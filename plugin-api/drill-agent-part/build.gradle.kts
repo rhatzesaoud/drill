@@ -29,7 +29,7 @@ kotlin {
                     dependsOn(sourceSets.named("commonMain").get())
                     dependencies {
                         implementation(project(":common"))
-                        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesNativeVersion")
+                        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
                     }
                 }
             }
