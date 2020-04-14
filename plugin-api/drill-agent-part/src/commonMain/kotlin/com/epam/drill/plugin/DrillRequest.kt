@@ -1,5 +1,8 @@
 package com.epam.drill.plugin
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class DrillRequest(
     val drillSessionId: String?,
     val host: String?,
