@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.epam.drill.plugin.api
 
 object Native {
@@ -6,6 +8,6 @@ object Native {
     }
 
     external fun RetransformClasses(count: Int, classes: Array<Class<*>>)
-    external fun RetransformClassesByPackagePrefixes(prefixes: Array<String>)
+    external fun RetransformClassesByPackagePrefixes(prefixes: ByteArray): Int
     external fun GetAllLoadedClasses(): Array<Class<*>>
 }
