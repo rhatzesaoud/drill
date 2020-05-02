@@ -13,6 +13,7 @@ data class AgentInfo(
     var description: String,
     var buildVersion: String,
     var agentType: AgentType,
+    val agentVersion: String,
     var sessionIdHeaderName: String = "",
     val adminUrl: String = "",
     var ipAddress: String = "",
