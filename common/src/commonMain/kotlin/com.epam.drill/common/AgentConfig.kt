@@ -9,6 +9,7 @@ data class AgentConfig(
     var buildVersion: String,
     var serviceGroupId: String,
     val agentType: AgentType,
+    val agentVersion: String = "",
     var needSync: Boolean = true,
     var packagesPrefixes: String = "{\"packagesPrefixes\":[]}"
 )
