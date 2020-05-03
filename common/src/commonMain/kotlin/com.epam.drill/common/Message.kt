@@ -1,7 +1,10 @@
 package com.epam.drill.common
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 @Serializable
-data class Message(var type: MessageType, var destination: String = "", var data: String = "")
-
+data class Message(
+    val type: MessageType,
+    val destination: String = "",
+    val data: ByteArray = byteArrayOf()
+)

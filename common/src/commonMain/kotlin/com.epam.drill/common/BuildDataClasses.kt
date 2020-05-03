@@ -29,9 +29,9 @@ data class BuildInfo(
 }
 
 @Serializable
-data class Base64Class(
+data class ByteClass(
     val className: String,
-    val encodedBytes: String
+    val bytes: ByteArray
 )
 
 enum class DiffType {

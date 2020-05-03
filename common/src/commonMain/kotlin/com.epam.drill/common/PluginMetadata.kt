@@ -4,16 +4,19 @@ import kotlinx.serialization.*
 
 @Serializable
 data class PluginMetadata(
-        val id: String,
-        var name: String = "",
-        var description: String = "",
-        var type: String = "",
-        var family: Family = Family.INSTRUMENTATION,
-        var enabled: Boolean = true,
-        var config: String = "",
-        var checkSum: String = "",
-        var isNative: Boolean = false
+    val id: String,
+    var name: String = "",
+    var description: String = "",
+    var type: String = "",
+    var family: Family = Family.INSTRUMENTATION,
+    var enabled: Boolean = true,
+    var config: String = "",
+    var checkSum: String = "",
+    var isNative: Boolean = false
 )
+
+@Serializable
+data class PluginBinary(val meta: PluginMetadata, val data: ByteArray)
 
 enum class Family {
     GENERIC, INSTRUMENTATION
@@ -21,6 +24,6 @@ enum class Family {
 
 @Serializable
 data class PluginConfig(
-        val id: String,
-        val data: String
+    val id: String,
+    val data: String
 )

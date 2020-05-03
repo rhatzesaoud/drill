@@ -11,7 +11,7 @@ data class AgentConfig(
     val agentType: AgentType,
     val agentVersion: String = "",
     var needSync: Boolean = true,
-    var packagesPrefixes: String = "{\"packagesPrefixes\":[]}"
+    var packagesPrefixes: PackagesPrefixes = PackagesPrefixes()
 )
 
 
