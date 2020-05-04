@@ -15,7 +15,7 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4096m
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4096m
 
   build_and_publish_for_win:
     name: Publish for Windows (x64) platform
@@ -27,3 +27,4 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4096m

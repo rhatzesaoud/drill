@@ -5,26 +5,35 @@ plugins {
     `maven-publish`
 }
 
+val scriptUrl: String by extra
+
+val kotlinVersion: String by extra
+val kxSerializationVersion: String by extra
+val kxCoroutinesVersion: String by extra
+val koduxVersion: String by extra
+
+val constraints = listOf(
+    "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion",
+    "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion",
+    "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kxSerializationVersion",
+    "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$kxSerializationVersion",
+    "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kxCoroutinesVersion",
+    "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kxCoroutinesVersion",
+    "com.epam.drill:kodux:$koduxVersion",
+    "com.epam.drill:kodux-jvm:$koduxVersion"
+).map(dependencies.constraints::create)
+
 subprojects {
     apply(plugin = "com.epam.drill.version.plugin")
 
-    apply { plugin(org.gradle.api.publish.maven.plugins.MavenPublishPlugin::class) }
-    publishing {
-        repositories {
-            maven {
-                url = uri("https://oss.jfrog.org/oss-release-local")
-                credentials {
-                    username =
-                        if (project.hasProperty("bintrayUser"))
-                            project.property("bintrayUser").toString()
-                        else System.getenv("BINTRAY_USER")
-                    password =
-                        if (project.hasProperty("bintrayApiKey"))
-                            project.property("bintrayApiKey").toString()
-                        else System.getenv("BINTRAY_API_KEY")
-                }
-            }
-        }
+    repositories {
+        mavenLocal()
+        apply(from = "$scriptUrl/maven-repo.gradle.kts")
+        jcenter()
+    }
+
+    configurations.all {
+        dependencyConstraints += constraints
     }
 
     tasks.withType<KotlinCompile> {

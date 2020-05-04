@@ -3,19 +3,22 @@ on:
   pull_request:
     branches:
       - develop
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
-  check_nix:
-    name: Check for nix platforms (Linux)
-    runs-on: ubuntu-latest
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    name: Check on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Check
-        run: gradle -si check
-  check_windlows:
-    name: Check for windows platform
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Check
-        run: gradle -si check
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: -s targetTest

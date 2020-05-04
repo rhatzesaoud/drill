@@ -1,32 +1,31 @@
 plugins {
-    id("kotlin-multiplatform")
-    id("kotlinx-serialization")
+    kotlin("multiplatform")
+    kotlin("plugin.serialization")
+    `maven-publish`
 }
 
 kotlin {
-    targets {
-        jvm()
+    sourceSets.commonMain {
+        dependencies {
+            api(project(":common"))
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
+            implementation("com.epam.drill:kodux") { isTransitive = false }
+        }
     }
 
-    sourceSets {
-        commonMain {
+    jvm {
+        val main by compilations
+        main.defaultSourceSet {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
-                implementation(project(":common"))
-                implementation("com.epam.drill:kodux:$koduxVersion")
-            }
-        }
-        val jvmMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-                implementation(project(":common"))
-                implementation("com.epam.drill:kodux-jvm:$koduxVersion")
+                api(project(":common"))
+                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
+                compileOnly("com.epam.drill:kodux-jvm")
             }
         }
     }
 }
-tasks.build {
-    dependsOn("publishToMavenLocal")
+
+tasks.register("targetTest") {
+    group = "verification"
+    dependsOn("jvmTest")
 }

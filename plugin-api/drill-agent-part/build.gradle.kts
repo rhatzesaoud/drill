@@ -1,58 +1,63 @@
+import org.jetbrains.kotlin.konan.target.*
+
 plugins {
-    id("kotlin-multiplatform")
-    id("kotlinx-serialization")
+    kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("com.epam.drill.cross-compilation")
+    `maven-publish`
 }
 
 kotlin {
-    targets {
-        jvm{
-            compilations["main"].defaultSourceSet{
-                dependencies {
-                    implementation(project(":common"))
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationRuntimeVersion")
-                }
-            }
-            compilations["test"].defaultSourceSet {
-                dependencies {
-                    implementation(kotlin("test-junit"))
-                }
-            }
-        }
-        linuxX64()
-        macosX64()
-        mingwX64()
-        crossCompilation {
+    linuxX64()
+    macosX64()
+    mingwX64()
+    jvm()
 
-            common {
-                defaultSourceSet {
-                    dependsOn(sourceSets.named("commonMain").get())
-                    dependencies {
-                        implementation(project(":common"))
-                        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
-                    }
+    sourceSets.commonMain {
+        dependencies {
+            api(project(":common"))
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+        }
+    }
+    sourceSets.commonTest {
+        dependencies {
+            implementation(kotlin("test-common"))
+            implementation(kotlin("test-annotations-common"))
+        }
+    }
+
+    crossCompilation {
+        common {
+            defaultSourceSet {
+                dependencies {
+                    api(project(":common"))
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native")
                 }
             }
         }
     }
 
-    sourceSets {
-        commonMain {
+    jvm {
+        val main by compilations
+        main.defaultSourceSet {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationRuntimeVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation(project(":common"))
+                api(project(":common"))
+                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
             }
         }
-        commonTest {
+        val test by compilations
+        test.defaultSourceSet {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test-common")
-                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
+                implementation(kotlin("test-junit"))
             }
         }
     }
 }
-tasks.build {
-    dependsOn("publishToMavenLocal")
+
+tasks.register("targetTest") {
+    group = "verification"
+    dependsOn("${HostManager.host.presetName}Test")
+    dependsOn("jvmTest")
 }
