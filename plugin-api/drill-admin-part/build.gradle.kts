@@ -24,8 +24,3 @@ kotlin {
         }
     }
 }
-
-tasks.register("targetTest") {
-    group = "verification"
-    dependsOn("jvmTest")
-}

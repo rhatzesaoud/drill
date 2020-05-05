@@ -55,9 +55,3 @@ kotlin {
         }
     }
 }
-
-tasks.register("targetTest") {
-    group = "verification"
-    dependsOn("${HostManager.host.presetName}Test")
-    dependsOn("jvmTest")
-}

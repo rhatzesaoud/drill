@@ -48,9 +48,3 @@ kotlin {
 tasks.withType<AbstractTestTask> {
     testLogging.showStandardStreams = true
 }
-
-tasks.register("targetTest") {
-    group = "verification"
-    dependsOn("${HostManager.host.presetName}Test")
-    dependsOn("jvmTest")
-}
