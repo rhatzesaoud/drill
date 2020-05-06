@@ -73,8 +73,8 @@ fun HttpRequest.toDrillRequest(): DrillRequest {
     val optimizedHeaders = this.headers.mapKeys { it.key.toLowerCase() }
     return DrillRequest(
         optimizedHeaders[DRILL_SESSION_ID] ?: this.cookies[DRILL_SESSION_ID],
-        this.headers[HOST],
-        this.headers[DRILL_ADDITIONAL_CONFIG],
+        this.headers[HOST] ?: "",
+        this.headers[DRILL_ADDITIONAL_CONFIG] ?: "",
         optimizedHeaders
     )
 }

@@ -7,7 +7,7 @@ data class Method(
     val ownerClass: String,
     val name: String,
     val desc: String,
-    val hash: String?
+    val hash: String
 )
 
 typealias Methods = List<Method>
