@@ -4,7 +4,7 @@ import com.epam.drill.session.*
 
 object DrillContext : IDrillContex {
     override operator fun invoke(): String? = threadStorage.get()?.drillSessionId?.ifEmpty { null }
-    override operator fun get(key: String): String? = threadStorage.get()?.get(key.toLowerCase())
+    override operator fun get(key: String): String? = threadStorage.get()?.headers?.get(key.toLowerCase())
 }
 
 interface IDrillContex {
