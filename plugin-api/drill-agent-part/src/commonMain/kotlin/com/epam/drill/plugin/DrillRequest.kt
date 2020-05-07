@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DrillRequest(
-    val drillSessionId: String?,
-    val host: String?,
-    val additionalConfig: String?,
-    val headers: Map<String, String>
+    val host: String = "",
+    val drillSessionId: String = "",
+    val additionalConfig: String = "",
+    val headers: Map<String, String> = emptyMap()
 ) {
-    fun get(key: String?): String? = headers[key]
+    fun get(key: String): String? = headers[key]
 }
 
 typealias RawHttpRequest = String
@@ -72,10 +72,10 @@ fun HttpRequest.toRawRequestString() =
 fun HttpRequest.toDrillRequest(): DrillRequest {
     val optimizedHeaders = this.headers.mapKeys { it.key.toLowerCase() }
     return DrillRequest(
-        optimizedHeaders[DRILL_SESSION_ID] ?: this.cookies[DRILL_SESSION_ID],
-        this.headers[HOST] ?: "",
-        this.headers[DRILL_ADDITIONAL_CONFIG] ?: "",
-        optimizedHeaders
+        host = headers[HOST] ?: "",
+        drillSessionId = optimizedHeaders[DRILL_SESSION_ID] ?: cookies[DRILL_SESSION_ID] ?: "",
+        additionalConfig = headers[DRILL_ADDITIONAL_CONFIG] ?: "",
+        headers = optimizedHeaders
     )
 }
 

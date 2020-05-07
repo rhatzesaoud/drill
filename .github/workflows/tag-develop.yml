@@ -1,4 +1,4 @@
-name: Tag develop
+name: Prelease on Push
 on:
   push:
     branches:

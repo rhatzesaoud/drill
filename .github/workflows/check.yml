@@ -1,4 +1,4 @@
-name: Check common
+name: Check
 on:
   pull_request:
     branches:

@@ -1,4 +1,4 @@
-name: Publish common artifacts
+name: Publish
 on:
   release:
     types: [published]
