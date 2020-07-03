@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.konan.target.*
-
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
@@ -16,6 +14,8 @@ kotlin {
     sourceSets.commonMain {
         dependencies {
             api(project(":common"))
+            api("com.epam.drill.logger:logger-api")
+
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
         }
@@ -30,8 +30,8 @@ kotlin {
     crossCompilation {
         common {
             defaultSourceSet {
+                dependsOn(sourceSets.commonMain.get())
                 dependencies {
-                    api(project(":common"))
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native")
                 }
             }
@@ -42,7 +42,6 @@ kotlin {
         val main by compilations
         main.defaultSourceSet {
             dependencies {
-                api(project(":common"))
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
             }
         }

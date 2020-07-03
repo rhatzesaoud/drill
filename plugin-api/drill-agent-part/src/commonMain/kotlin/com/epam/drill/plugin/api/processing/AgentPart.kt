@@ -1,41 +1,29 @@
 package com.epam.drill.plugin.api.processing
 
 import com.epam.drill.common.*
-import com.epam.drill.plugin.api.*
+import com.epam.drill.logger.api.*
 import kotlinx.serialization.*
 
-expect abstract class AgentPart<T, A>(payload: PluginPayload) : DrillPlugin<A>, Switchable, Lifecycle {
-    var np: NativePart<T>?
-    var enabled: Boolean
+expect abstract class AgentPart<T, A>(
+    id: String,
+    context: AgentContext
+) : AgentPlugin<A> {
 
     abstract val confSerializer: KSerializer<T>
 
-    open fun init(nativePluginPartPath: String)
+    var np: NativePart<T>?
+    var enabled: Boolean
 
-    fun load(onImmediately: Boolean)
+    fun load(on: Boolean)
     fun unload(unloadReason: UnloadReason)
 
-
     abstract override fun initPlugin()
-
     abstract override fun destroyPlugin(unloadReason: UnloadReason)
 
     abstract override fun on()
-
     abstract override fun off()
 
     fun rawConfig(): String
-}
-
-
-interface Switchable {
-    fun on()
-    fun off()
-}
-
-interface Lifecycle {
-    fun initPlugin()
-    fun destroyPlugin(unloadReason: UnloadReason)
 }
 
 expect abstract class NativePart<T> {

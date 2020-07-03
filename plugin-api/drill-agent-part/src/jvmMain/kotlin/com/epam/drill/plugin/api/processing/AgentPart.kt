@@ -1,35 +1,25 @@
 package com.epam.drill.plugin.api.processing
 
-import com.epam.drill.plugin.api.*
 import kotlinx.coroutines.*
 
 
-actual abstract class AgentPart<T, A> actual constructor(payload: PluginPayload) : DrillPlugin<A>, Switchable, Lifecycle {
-    private var rawConfig: String? = null
+actual abstract class AgentPart<T, A> actual constructor(
+    override val id: String,
+    context: AgentContext
+) : AgentPlugin<A> {
+
+    actual abstract val confSerializer: kotlinx.serialization.KSerializer<T>
+
+    actual var np: NativePart<T>? = null
+    actual var enabled: Boolean = false
 
     val config: T get() = confSerializer parse rawConfig!!
 
-    //TODO figure out how to handle suspend from the agent
-    fun doRawActionBlocking(rawAction: String) = runBlocking<Unit> {
-        doRawAction(rawAction)
-    }
+    private var rawConfig: String? = null
 
-    actual open fun init(nativePluginPartPath: String) {
-        try {
-            System.load(nativePluginPartPath)
-        } catch (ex: Throwable) {
-            ex.printStackTrace()
-        }
-    }
-
-    actual fun load(onImmediately: Boolean) {
+    actual fun load(on: Boolean) {
         initPlugin()
-        if (onImmediately)
-            on()
-    }
-
-    fun send(message: String) {
-        Sender.sendMessage(id, message)
+        takeIf { on }?.on()
     }
 
     actual fun unload(unloadReason: UnloadReason) {
@@ -37,24 +27,26 @@ actual abstract class AgentPart<T, A> actual constructor(payload: PluginPayload)
         destroyPlugin(unloadReason)
     }
 
+    actual abstract override fun initPlugin()
+
+    actual abstract override fun destroyPlugin(unloadReason: UnloadReason)
+
     actual abstract override fun on()
 
     actual abstract override fun off()
 
-    external fun loadNative(ss: Long)
-    actual var np: NativePart<T>? = null
+    fun send(message: String) {
+        Sender.sendMessage(id, message)
+    }
 
     open fun updateRawConfig(configs: String) {
         rawConfig = configs
     }
 
-    actual abstract val confSerializer: kotlinx.serialization.KSerializer<T>
-    actual abstract override fun initPlugin()
+    actual fun rawConfig(): String = confSerializer stringify config!!
 
-    actual abstract override fun destroyPlugin(unloadReason: UnloadReason)
-    actual fun rawConfig(): String {
-        return confSerializer stringify config!!
+    //TODO figure out how to handle suspend from the agent
+    fun doRawActionBlocking(rawAction: String) = runBlocking<Unit> {
+        doRawAction(rawAction)
     }
-
-    actual var enabled: Boolean = false
 }

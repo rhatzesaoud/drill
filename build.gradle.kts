@@ -8,11 +8,15 @@ plugins {
 val scriptUrl: String by extra
 
 val kotlinVersion: String by extra
+
+val drillLoggerApiVersion: String by extra
+
 val kxSerializationVersion: String by extra
 val kxCoroutinesVersion: String by extra
 val koduxVersion: String by extra
 
 val constraints = listOf(
+    "com.epam.drill.logger:logger-api:$drillLoggerApiVersion",
     "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion",
     "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion",
     "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kxSerializationVersion",
