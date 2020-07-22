@@ -13,9 +13,7 @@ abstract class AdminPluginPart<A>(
     override val id: String
 ) : DrillPlugin<A> {
     abstract suspend fun processData(dm: DrillMessage): Any
-    open suspend fun updateDataOnBuildConfigChange(buildVersion: String) = Unit
     open suspend fun applyPackagesChanges() = Unit
     open suspend fun initialize() = Unit
-    open suspend fun getPluginData(params: Map<String, String>): Any = ""
     abstract suspend fun dropData()
 }
