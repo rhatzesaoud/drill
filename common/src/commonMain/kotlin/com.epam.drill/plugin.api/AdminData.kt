@@ -4,6 +4,8 @@ import com.epam.drill.common.*
 
 interface AdminData {
     val buildManager: BuildManager
+
+    val classBytes: Map<String, ByteArray>
 }
 
 interface BuildManager {
