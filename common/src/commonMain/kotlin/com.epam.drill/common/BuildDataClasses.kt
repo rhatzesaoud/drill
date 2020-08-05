@@ -5,8 +5,7 @@ import kotlinx.serialization.*
 @Serializable
 data class BuildInfo(
     val version: String = "",
-    val parentVersion: String = "",
-    val classesBytes: Map<String, ByteArray> = emptyMap()
+    val parentVersion: String = ""
 ) {
     override fun equals(other: Any?) = other is BuildInfo && version == other.version
 
