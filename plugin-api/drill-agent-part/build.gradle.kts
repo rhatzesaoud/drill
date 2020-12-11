@@ -45,12 +45,5 @@ kotlin {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
             }
         }
-        val test by compilations
-        test.defaultSourceSet {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
-                implementation(kotlin("test-junit"))
-            }
-        }
     }
 }

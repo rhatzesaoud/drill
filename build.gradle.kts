@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.*
-
 plugins {
-    id("com.epam.drill.version.plugin")
+    kotlin("multiplatform") apply false
     `maven-publish`
 }
 
@@ -27,9 +25,11 @@ val constraints = listOf(
     "com.epam.drill:kodux-jvm:$koduxVersion"
 ).map(dependencies.constraints::create)
 
-subprojects {
-    apply(plugin = "com.epam.drill.version.plugin")
+allprojects {
+    apply(from = rootProject.uri("$scriptUrl/git-version.gradle.kts"))
+}
 
+subprojects {
     repositories {
         mavenLocal()
         apply(from = "$scriptUrl/maven-repo.gradle.kts")
@@ -38,9 +38,5 @@ subprojects {
 
     configurations.all {
         dependencyConstraints += constraints
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.allWarningsAsErrors = true
     }
 }

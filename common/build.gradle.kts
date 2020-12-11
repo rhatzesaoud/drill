@@ -1,7 +1,6 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("com.epam.drill.cross-compilation")
     `maven-publish`
 }
 
@@ -17,12 +16,11 @@ kotlin {
         }
     }
 
-    crossCompilation {
-        common {
-            defaultSourceSet {
-                dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native")
-                }
+    targets.matching { it.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native }.all {
+        val main by compilations
+        main.defaultSourceSet {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native")
             }
         }
     }
@@ -34,15 +32,5 @@ kotlin {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
             }
         }
-        val test by compilations
-        test.defaultSourceSet {
-            dependencies {
-                implementation(kotlin("test-junit"))
-            }
-        }
     }
-}
-
-tasks.withType<AbstractTestTask> {
-    testLogging.showStandardStreams = true
 }

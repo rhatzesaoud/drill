@@ -10,7 +10,6 @@ pluginManagement {
         kotlin("multiplatform") version kotlinVersion
         kotlin("plugin.serialization") version kotlinVersion
         id("com.epam.drill.cross-compilation") version drillGradlePluginVersion
-        id("com.epam.drill.version.plugin") version drillGradlePluginVersion
     }
 }
 
