@@ -1,11 +1,10 @@
 package com.epam.drill.common
 
-import com.epam.kodux.*
 import kotlinx.serialization.*
 
 @Serializable
 data class AgentInfo(
-    @Id val id: String,
+    val id: String,
     var name: String,
     var status: AgentStatus,
     var serviceGroup: String = "",

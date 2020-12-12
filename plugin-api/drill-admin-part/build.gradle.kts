@@ -9,7 +9,6 @@ kotlin {
         dependencies {
             api(project(":common"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
-            implementation("com.epam.drill:kodux") { isTransitive = false }
         }
     }
 
@@ -19,7 +18,6 @@ kotlin {
             dependencies {
                 api(project(":common"))
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
-                compileOnly("com.epam.drill:kodux-jvm")
             }
         }
     }
