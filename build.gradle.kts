@@ -33,7 +33,4 @@ subprojects {
         jcenter()
     }
 
-    configurations.all {
-        dependencyConstraints += constraints
-    }
 }

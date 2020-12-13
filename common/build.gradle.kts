@@ -4,6 +4,8 @@ plugins {
     `maven-publish`
 }
 
+val kxSerializationVersion: String by extra
+
 kotlin {
     linuxX64()
     macosX64()
@@ -12,7 +14,7 @@ kotlin {
 
     sourceSets.commonMain {
         dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion")
         }
     }
 
@@ -20,7 +22,7 @@ kotlin {
         val main by compilations
         main.defaultSourceSet {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$kxSerializationVersion")
             }
         }
     }
@@ -29,7 +31,7 @@ kotlin {
         val main by compilations
         main.defaultSourceSet {
             dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
+                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kxSerializationVersion")
             }
         }
     }

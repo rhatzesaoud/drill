@@ -5,6 +5,10 @@ plugins {
     `maven-publish`
 }
 
+val drillLoggerApiVersion: String by extra
+val kxSerializationVersion: String by extra
+val kxCoroutinesVersion: String by extra
+
 kotlin {
     linuxX64()
     macosX64()
@@ -14,10 +18,10 @@ kotlin {
     sourceSets.commonMain {
         dependencies {
             api(project(":common"))
-            api("com.epam.drill.logger:logger-api")
+            api("com.epam.drill.logger:logger-api:$drillLoggerApiVersion")
 
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kxCoroutinesVersion")
         }
     }
     sourceSets.commonTest {
@@ -32,7 +36,7 @@ kotlin {
             defaultSourceSet {
                 dependsOn(sourceSets.commonMain.get())
                 dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native")
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kxCoroutinesVersion")
                 }
             }
         }
@@ -42,7 +46,7 @@ kotlin {
         val main by compilations
         main.defaultSourceSet {
             dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
+                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kxSerializationVersion")
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.epam.drill.plugin.api.processing
 
 import com.epam.drill.common.*
-import com.epam.drill.logger.api.*
 import kotlinx.serialization.*
 
 expect abstract class AgentPart<T, A>(
