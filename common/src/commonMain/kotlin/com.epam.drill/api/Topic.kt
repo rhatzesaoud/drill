@@ -7,7 +7,6 @@ import kotlin.reflect.*
 annotation class Topic(val url: String)
 
 
-@ImplicitReflectionSerializer
 inline fun <reified T : Any> KClass<T>.topicUrl() = (this
     .serializer())
     .descriptor

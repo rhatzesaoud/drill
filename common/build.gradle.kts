@@ -12,26 +12,33 @@ kotlin {
     mingwX64()
     jvm()
 
-    sourceSets.commonMain {
-        dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$kxSerializationVersion")
+    sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
         }
-    }
 
-    targets.matching { it.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native }.all {
-        val main by compilations
-        main.defaultSourceSet {
+        commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$kxSerializationVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
             }
         }
-    }
 
-    jvm {
-        val main by compilations
-        main.defaultSourceSet {
-            dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kxSerializationVersion")
+        targets.matching { it.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native }.all {
+            val main by compilations
+            main.defaultSourceSet {
+                dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
+                }
+            }
+        }
+
+        jvm {
+            val main by compilations
+            main.defaultSourceSet {
+                dependencies {
+                    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
+                }
             }
         }
     }
