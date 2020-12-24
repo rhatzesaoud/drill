@@ -1,35 +1,33 @@
 package com.epam.drill.plugin.api.processing
 
-import com.epam.drill.common.*
-import kotlinx.serialization.*
+import com.epam.drill.logger.api.*
 
-expect abstract class AgentPart<T, A>(
-    id: String,
-    context: AgentContext
+@Suppress("unused")
+abstract class AgentPart<A>(
+    val id: String,
+    val context: AgentContext,
+    private val sender: Sender,
+    @Suppress("UNUSED_PARAMETER")
+    logging: LoggerFactory
 ) : AgentPlugin<A> {
+    fun send(message: String) = sender.send(id, message)
 
-    abstract val confSerializer: KSerializer<T>
+    open fun updateRawConfig(data: String) = Unit
 
-    var np: NativePart<T>?
-    var enabled: Boolean
-
-    fun load(on: Boolean)
-    fun unload(unloadReason: UnloadReason)
-
-    abstract override fun initPlugin()
-    abstract override fun destroyPlugin(unloadReason: UnloadReason)
-
-    abstract override fun on()
-    abstract override fun off()
-
-    fun rawConfig(): String
-}
-
-expect abstract class NativePart<T> {
-    actual abstract val confSerializer: KSerializer<T>
-    fun updateRawConfig(config: PluginConfig)
-}
-
-enum class UnloadReason {
-    ACTION_FROM_ADMIN, SH
+    //TODO remove from API - this is only used in agent
+    open fun isEnabled(): Boolean = true
+    //TODO remove from API - this is only used in agent
+    open fun setEnabled(enabled: Boolean) = Unit
+    //TODO remove from API - this is only used in agent
+    open fun load(on: Boolean) {
+        initPlugin()
+        if (on) {
+            on()
+        }
+    }
+    //TODO remove from API - this is only used in agent
+    open fun unload(unloadReason: UnloadReason) {
+        off()
+        destroyPlugin(unloadReason)
+    }
 }
