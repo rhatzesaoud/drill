@@ -5,10 +5,4 @@ plugins {
 
 kotlin {
     jvm()
-
-    sourceSets.commonMain {
-        dependencies {
-            compileOnly(kotlin("stdlib"))
-        }
-    }
 }

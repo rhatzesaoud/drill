@@ -11,14 +11,7 @@ kotlin {
     linuxX64()
     macosX64()
     mingwX64()
-    jvm {
-        val main by compilations
-        main.defaultSourceSet {
-            dependencies {
-                compileOnly(kotlin("stdlib"))
-            }
-        }
-    }
+    jvm()
 
     sourceSets.commonMain {
         dependencies {

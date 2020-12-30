@@ -13,32 +13,15 @@ kotlin {
     jvm()
 
     sourceSets {
-        all {
-            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
-            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
-        }
+        val experimental = listOf(
+            "kotlinx.serialization.InternalSerializationApi",
+            "kotlinx.serialization.ExperimentalSerializationApi"
+        )
+        all { experimental.forEach(languageSettings::useExperimentalAnnotation) }
 
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
-            }
-        }
-
-        targets.matching { it.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native }.all {
-            val main by compilations
-            main.defaultSourceSet {
-                dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
-                }
-            }
-        }
-
-        jvm {
-            val main by compilations
-            main.defaultSourceSet {
-                dependencies {
-                    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
-                }
             }
         }
     }
