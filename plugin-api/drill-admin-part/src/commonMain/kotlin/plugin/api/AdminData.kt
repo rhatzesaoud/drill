@@ -16,5 +16,5 @@
 package com.epam.drill.plugin.api
 
 interface AdminData {
-    val classBytes: Map<String, ByteArray>
+    suspend fun loadClassBytes(): Map<String, ByteArray>
 }
