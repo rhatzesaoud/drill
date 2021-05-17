@@ -27,11 +27,11 @@ abstract class AdminPluginPart<A>(
 ) {
     open suspend fun initialize() = Unit
 
-    abstract suspend fun doAction(action: A): Any
+    abstract suspend fun doAction(action: A, data: Any?): Any
 
     abstract fun parseAction(rawAction: String): A
 
-    suspend fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
+    suspend fun doRawAction(rawAction: String, data: Any? = null): Any = doAction(parseAction(rawAction), data)
 
     open suspend fun processData(
         instanceId: String,
