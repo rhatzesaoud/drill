@@ -26,9 +26,20 @@ data class AgentConfig(
     val agentType: AgentType,
     val agentVersion: String = "",
     val needSync: Boolean = true,
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes()
+    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
+    val parameters: Map<String, AgentParameter> = emptyMap(),
 )
 
+@Serializable
+data class AgentParameter(
+    val type: String,
+    val value: String,
+    val description: String,
+)
+
+interface AgentConfigUpdater {
+    fun updateParameters(config: AgentConfig)
+}
 
 @Serializable
 data class PackagesPrefixes(

@@ -35,9 +35,14 @@ sealed class Communication {
         @Topic("/agent/set-packages-prefixes")
         class SetPackagePrefixesEvent
 
+        //todo for what did it use?
         @Serializable
         @Topic("/agent/update-config")
         class UpdateConfigEvent
+
+        @Serializable
+        @Topic("/agent/update-parameters")
+        class UpdateParametersEvent
 
         @Serializable
         @Topic("/agent/change-header-name")
