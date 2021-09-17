@@ -7,19 +7,20 @@ plugins {
 val kxSerializationVersion: String by extra
 
 kotlin {
-    linuxX64()
-    macosX64()
-    mingwX64()
-    jvm()
-
+    targets {
+        linuxX64()
+        macosX64()
+        mingwX64()
+        jvm()
+    }
     sourceSets {
         val experimental = listOf(
             "kotlinx.serialization.InternalSerializationApi",
             "kotlinx.serialization.ExperimentalSerializationApi"
         )
-        all { experimental.forEach(languageSettings::useExperimentalAnnotation) }
+        all { experimental.forEach(languageSettings::optIn) }
 
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kxSerializationVersion")
             }

@@ -16,8 +16,8 @@ allprojects {
 subprojects {
     repositories {
         mavenLocal()
+        mavenCentral()
         apply(from = "$scriptUrl/maven-repo.gradle.kts")
-        jcenter()
     }
 }
 
