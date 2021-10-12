@@ -17,6 +17,7 @@ package com.epam.drill.common
 
 enum class MessageType {
     PLUGIN_DATA,
+    PLUGIN_ACTION,
     MESSAGE,
     MESSAGE_DELIVERED,
     DEBUG,
