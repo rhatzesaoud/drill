@@ -17,6 +17,8 @@ package com.epam.drill.plugin.api.end
 
 interface Sender {
     suspend fun send(context: SendContext, destination: Any, message: Any)
+
+    suspend fun sendAgentAction(agentId: String, pluginId: String, message: Any)
 }
 
 interface SendContext

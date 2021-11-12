@@ -29,6 +29,8 @@ abstract class AgentPart<A>(
 
     open fun updateRawConfig(data: String) = Unit
 
+    open fun onConnect() = Unit
+
     //TODO remove from API - this is only used in agent
     open fun isEnabled(): Boolean = true
     //TODO remove from API - this is only used in agent
